@@ -40,17 +40,17 @@ uint64_t ipc_space_kernel() {
 }
 
 uint64_t find_port_address(mach_port_name_t port) {
-    printf("AA 1\n");
+   
     uint64_t task_addr = task_self_addr();
     uint64_t itk_space = kread64(task_addr + offsetof_itk_space);
-    printf("AA 2\n");
+    
     uint64_t is_table = kread64(itk_space + offsetof_ipc_space_is_table);
-    printf("AA 3\n");
+    
     uint32_t port_index = port >> 8;
     const int sizeof_ipc_entry_t = 0x18;
-    printf("AA 4\n");
+
     uint64_t port_addr = kread64(is_table + (port_index * sizeof_ipc_entry_t));
-    printf("AA 5\n");
+
     return port_addr;
 }
 
