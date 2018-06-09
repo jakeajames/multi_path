@@ -9,12 +9,18 @@
 #import "ViewController.h"
 #include "sploit.h"
 #include "jelbrek/jelbrek.h"
+#include "jelbrek/kern_utils.h"
+#include "jelbrek/offsetof.h"
+#include "jelbrek/patchfinder64.h"
+
 #include <sys/stat.h>
 #include <sys/spawn.h>
 #include <mach/mach.h>
 
 mach_port_t taskforpidzero;
+uint64_t kernel_base, kslide;
 
+//Jonathan Seals: https://github.com/JonathanSeals/kernelversionhacker
 uint64_t find_kernel_base() {
 #define IMAGE_OFFSET 0x2000
 #define MACHO_HEADER_MAGIC 0xfeedfacf
@@ -66,11 +72,16 @@ next:
 }
 }
 
+
 @interface ViewController ()
 
 @end
 
 @implementation ViewController
+
+-(void)log:(NSString*)log {
+    self.logs.text = [NSString stringWithFormat:@"%@\n%@", self.logs.text, log];
+}
 
 -(void)jelbrek {
     get_root(getpid());
@@ -79,71 +90,53 @@ next:
     
     
     if (geteuid() == 0) {
-        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"root" message:@"Success! Got root!" preferredStyle:UIAlertControllerStyleAlert];
         
-        UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
-            FILE *f = fopen("/var/mobile/.roottest", "w");
-            if (f == 0) {
-                UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"sandbox" message:@"Failed to escape sandbox!" preferredStyle:UIAlertControllerStyleAlert];
-                
-                UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {}];
-                
-                [alert addAction:defaultAction];
-                
-                [self presentViewController:alert animated:YES completion:nil];
-            } else {
-                UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"sandbox" message:[NSString stringWithFormat:@"Successfully wrote file! %p", f] preferredStyle:UIAlertControllerStyleAlert];
-                
-                UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {}];
-                
-                [alert addAction:defaultAction];
-                
-                [self presentViewController:alert animated:YES completion:nil];
-            }
-            fclose(f);
-        }];
+        [self log:@"Success! Got root!"];
         
-        [alert addAction:defaultAction];
-        
-        [self presentViewController:alert animated:YES completion:nil];
-        
+        FILE *f = fopen("/var/mobile/.roottest", "w");
+        if (f == 0) {
+            [self log:@"Failed to escape sandbox!"];
+            return;
+        }
+        else
+            [self log:[NSString stringWithFormat:@"Successfully wrote file! %p", f]];
+        fclose(f);
         
     }
     else {
-        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"root" message:@"Failed to get root!" preferredStyle:UIAlertControllerStyleAlert];
-        
-        UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {}];
-        
-        [alert addAction:defaultAction];
-        
-        [self presentViewController:alert animated:YES completion:nil];
+        [self log:@"Failed to get root!"];
+        return;
     }
-    //NSString *testbin = [NSString stringWithFormat:@"%@/test", [[NSBundle mainBundle] bundlePath]];
-    //chmod([testbin UTF8String], 777);
-    //trust_bin([testbin UTF8String]);
     
-    //pid_t pd;
+    //Jonathan Levin: http://newosxbook.com/QiLin/
+    initQiLin(taskforpidzero, kernel_base);
     
-    //const char* args[] = {[testbin UTF8String], "101010", NULL};
-    //int rv = posix_spawn(&pd, [testbin UTF8String], NULL, NULL, (char **)&args, NULL);
+    setKernelSymbol("_kernproc", find_kernproc()-kslide);
     
+    platformizeMe();
+    borrowEntitlementsFromDonor("/usr/bin/sysdiagnose","-u");
+    castrateAmfid();
+    
+    NSString *testbin = [NSString stringWithFormat:@"%@/test", [[NSBundle mainBundle] bundlePath]];
+    chmod([testbin UTF8String], 777);
+    
+    pid_t pd;
+    const char* args[] = {[testbin UTF8String], NULL};
+    int rv = posix_spawn(&pd, [testbin UTF8String], NULL, NULL, (char **)&args, NULL);
+    [self log:(rv) ? @"Failed to patch codesign!" : @"SUCCESS! Patched codesign!"];
 }
 - (IBAction)go:(id)sender {
-    taskforpidzero = go();
+    taskforpidzero = run();
+    kernel_base = find_kernel_base();
+    kslide = kernel_base - 0xfffffff007004000;
     
     if (taskforpidzero != MACH_PORT_NULL) {
-        init_jelbrek(taskforpidzero, find_kernel_base());
+        [self log:@"Exploit successful!"];
+        init_jelbrek(taskforpidzero, kernel_base);
         [self jelbrek];
     }
-    else {
-        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"tfp0" message:@"Exploit failed!" preferredStyle:UIAlertControllerStyleAlert];
-        
-        UIAlertAction* defaultAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {}];
-        
-        [alert addAction:defaultAction];
-        
-        [self presentViewController:alert animated:YES completion:nil];
-    }
+    else
+        [self log:@"Exploit failed!"];
 }
 
 - (void)viewDidLoad {

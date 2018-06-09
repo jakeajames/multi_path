@@ -881,3 +881,4 @@ addr_t find_amficache(void) {
     }
     return val + kerndumpbase;
 }
+

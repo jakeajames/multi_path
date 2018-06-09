@@ -580,7 +580,7 @@ uint64_t rk64(uint64_t kaddr) {
   return full;
 }
 
-mach_port_t go() {
+mach_port_t run() {
   offsets_init();
   
   // increase the limit on the number of open files:

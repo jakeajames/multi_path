@@ -5,6 +5,7 @@
     </device>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -18,21 +19,34 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="d5x-Dt-hZz">
-                                <rect key="frame" x="170.5" y="309" width="34" height="48"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="30"/>
+                                <rect key="frame" x="168" y="306" width="39" height="54"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="35"/>
                                 <state key="normal" title="go"/>
                                 <connections>
                                     <action selector="go:" destination="BYZ-38-t0r" eventType="touchUpInside" id="gtb-4g-8VY"/>
                                 </connections>
                             </button>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="r1n-NB-Mcq">
+                                <rect key="frame" x="16" y="368" width="343" height="279"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="centerX" secondItem="d5x-Dt-hZz" secondAttribute="centerX" id="3il-1Z-JrQ"/>
+                            <constraint firstAttribute="bottom" secondItem="r1n-NB-Mcq" secondAttribute="bottom" constant="20" symbolic="YES" id="NyI-Bx-c5k"/>
                             <constraint firstItem="d5x-Dt-hZz" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="SqU-qy-QQZ"/>
                             <constraint firstItem="d5x-Dt-hZz" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="Toj-B4-bIj"/>
+                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="top" secondItem="d5x-Dt-hZz" secondAttribute="bottom" constant="8" symbolic="YES" id="WsI-5p-a9I"/>
+                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="qV6-Vp-ECP"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
+                    <connections>
+                        <outlet property="logs" destination="r1n-NB-Mcq" id="oYF-dm-GhP"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>

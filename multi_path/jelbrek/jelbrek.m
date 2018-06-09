@@ -5,6 +5,8 @@
 #include "libjb.h"
 #include "offsetof.h"
 #include "jelbrek.h"
+#include <sys/mount.h>
+
 //#include "inject_criticald.h"
 //#include "unlocknvram.h"
 //#include <IOKit/IOKitLib.h>
@@ -83,38 +85,31 @@ BOOL get_root(pid_t pid) {
     return (geteuid() == 0) ? YES : NO;
 }
 
+
 /*void remount(){
+    uint64_t _rootvnode = find_rootvnode();
+    uint64_t rootfs_vnode = kread64(_rootvnode);
+    uint64_t v_mount = kread64(rootfs_vnode + offsetof_v_mount);
+    uint32_t v_flag = kread32(v_mount + offsetof_mnt_flag);
     
-    char *devpath = strdup("/dev/disk0s1s1");
-    uint64_t devVnode = getVnodeAtPath(devpath);
-    kwrite64(devVnode + off_v_specflags, 0); // clear dev vnode’s v_specflags
+    v_flag = v_flag & ~MNT_NOSUID;
+    v_flag = v_flag & ~MNT_RDONLY;
     
-    /* 1. make a new mount of the device of root partition */
+    kwrite32(v_mount + offsetof_mnt_flag, v_flag & ~MNT_ROOTFS);
     
-    /*char *newMPPath = strdup("/private/var/mobile/tmp");
-    createDirAtPath(newMPPath);
-    mountDevAtPathAsRW(devPath, newMPPath);
+    char *nmz = strdup("/dev/disk0s1s1");
+    int rv = mount("apfs", "/", MNT_UPDATE, (void *)&nmz);
+    printf("remounting: %d\n", rv);
     
+    v_mount = kread64(rootfs_vnode + offsetof_v_mount);
+    kwrite32(v_mount + offsetof_mnt_flag, v_flag);
     
-    /* 2. Get mnt_data from the new mount */
-    
-    /*uint64_t newMPVnode = getVnodeAtPath(newMPPath);
-    uint64_t newMPMount = kread64(newMPVnode + off_v_mount);
-    uint64_t newMPMountData = kread64(newMPMount + off_mnt_data);
-    
-    
-    
-    /* 3. Modify root mount’s flag and remount */
-    
-    /*uint64_t rootVnode = getVnodeAtPath("/");
-    uint64_t rootMount = kread64(rootVnode + off_v_mount);
-    uint32_t rootMountFlag = kread64(rootMount + off_mnt_flag);
-    kwrite64(rootMount + off_mnt_flag, rootMountFlag & ~ ( MNT_NOSUID | MNT_RDONLY | MNT_ROOTFS));
-    
-    mount("apfs", "/", MNT_UPDATE, &devpath);
-    
-    /* 4. Replace root mount’s mnt_data with new mount’s mnt_data */
-    
-    /*kwrite64(rootMount + off_mnt_data, newMPMountData);
-    
+    int fd = open("/RWTEST", O_RDONLY);
+    if (fd == -1) {
+        fd = creat("/RWTEST", 0777);
+    } else {
+        printf("File already exists!\n");
+    }
+    close(fd);
+    printf("Did we mount / as read+write? %s\n", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no");
 }*/

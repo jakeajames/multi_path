@@ -44,4 +44,6 @@ unsigned offsetof_csb_platform_path = 0xA8;   // cs_blob::csb_platform_path
 
 unsigned offsetof_t_flags = 0x3a0; // task::t_flags
 
+unsigned offsetof_v_mount = 0xd8;             // vnode::v_mount
+unsigned offsetof_mnt_flag = 0x70;            // mount::mnt_flag
 

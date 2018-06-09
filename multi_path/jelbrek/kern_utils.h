@@ -42,7 +42,9 @@ void kwrite32(uint64_t where, uint32_t what);
 void kwrite64(uint64_t where, uint64_t what);
 uint64_t proc_for_pid(pid_t pid);
 uint64_t proc_for_name(char *nm);
+unsigned int pid_for_name(char *nm);
 uint64_t find_port_address(mach_port_name_t port);
-uint64_t task_self_addr();
+uint64_t task_self_addr(void);
 uint64_t kmem_alloc_wired(uint64_t size);
+uint64_t find_kernproc(void);
 #endif /* fun_utils_h */

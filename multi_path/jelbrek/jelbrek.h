@@ -1,3 +1,4 @@
+#include "QiLin.h"
 
 void init_jelbrek(mach_port_t tfp0, uint64_t kernel_base);
 kern_return_t trust_bin(const char *path);

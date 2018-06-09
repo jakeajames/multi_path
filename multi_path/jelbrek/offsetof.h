@@ -46,6 +46,9 @@ extern unsigned offsetof_csb_platform_path;
 
 extern unsigned offsetof_t_flags;
 
+extern unsigned offsetof_v_mount;
+extern unsigned offsetof_mnt_flag;
+
 #define	CS_VALID		0x0000001	/* dynamically valid */
 #define CS_ADHOC		0x0000002	/* ad hoc signed */
 #define CS_GET_TASK_ALLOW	0x0000004	/* has get-task-allow entitlement */

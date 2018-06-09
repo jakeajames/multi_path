@@ -201,6 +201,7 @@ uint64_t proc_for_pid(pid_t pid) {
     
     return 0;
 }
+
 uint64_t proc_for_name(char *nm) {
     uint64_t proc = kread64(find_allproc());
     char name[40] = {0};
@@ -209,5 +210,27 @@ uint64_t proc_for_name(char *nm) {
         if (strstr(name, nm)) return proc;
         proc = kread64(proc);
     }
+    return 0;
+}
+
+unsigned int pid_for_name(char *nm) {
+    uint64_t proc = kread64(find_allproc());
+    char name[40] = {0};
+    while (proc) {
+        kread(proc + 0x268, name, 20);
+        if (strstr(name, nm)) return kread32(proc + offsetof_p_pid);
+        proc = kread64(proc);
+    }
+    return 0;
+}
+
+uint64_t find_kernproc() {
+    uint64_t proc = kread64(find_allproc()), pd;
+    while (proc) {
+        pd = kread32(kread64(proc) + offsetof_p_pid);
+        if (pd == 0) return proc;
+        proc = kread64(proc);
+    }
+    
     return 0;
 }
