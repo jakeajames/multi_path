@@ -40,6 +40,8 @@ uint64_t kread64(uint64_t where);
 size_t kwrite(uint64_t where, const void *p, size_t size);
 void kwrite32(uint64_t where, uint32_t what);
 void kwrite64(uint64_t where, uint64_t what);
+void kmemcpy(uint64_t dest, uint64_t src, uint32_t length);
+mach_port_t fake_host_priv();
 uint64_t proc_for_pid(pid_t pid);
 uint64_t proc_for_name(char *nm);
 unsigned int pid_for_name(char *nm);

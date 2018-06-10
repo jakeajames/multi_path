@@ -15,6 +15,7 @@
 void init_jelbrek(mach_port_t tfp0, uint64_t kernel_base) {
     init_kernel_utils(tfp0);
     init_kernel(kernel_base, NULL);
+    initQiLin(tfp0, kernel_base); //Jonathan Levin: http://newosxbook.com/QiLin/
 }
 
 kern_return_t trust_bin(const char *path) {

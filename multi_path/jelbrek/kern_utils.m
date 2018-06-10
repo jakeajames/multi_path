@@ -9,6 +9,7 @@
 #include "kern_utils.h"
 #include "patchfinder64.h"
 #include "offsetof.h"
+#include "../offsets.h"
 
 /****** Kernel utility stuff ******/
 
@@ -94,7 +95,7 @@ mach_port_t fake_host_priv() {
     
     return port;
 }
-    
+
 uint64_t kmem_alloc_wired(uint64_t size) {
     if (tfpzero == MACH_PORT_NULL) {
         printf("attempt to allocate kernel memory before any kernel memory write primitives available\n");
@@ -191,6 +192,50 @@ void kwrite64(uint64_t where, uint64_t what) {
     kwrite(where, &_what, sizeof(uint64_t));
 }
 
+const uint64_t kernel_address_space_base = 0xffff000000000000;
+void kmemcpy(uint64_t dest, uint64_t src, uint32_t length) {
+    if (dest >= kernel_address_space_base) {
+        // copy to kernel:
+        kwrite(dest, (void*) src, length);
+    } else {
+        // copy from kernel
+        kread(src, (void*)dest, length);
+    }
+}
+
+void convert_port_to_task_port(mach_port_t port, uint64_t space, uint64_t task_kaddr) {
+    // now make the changes to the port object to make it a task port:
+    uint64_t port_kaddr = find_port_address(port);
+    
+    kwrite32(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IO_BITS), 0x80000000 | 2);
+    kwrite32(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IO_REFERENCES), 0xf00d);
+    kwrite32(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_SRIGHTS), 0xf00d);
+    kwrite64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_RECEIVER), space);
+    kwrite64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT),  task_kaddr);
+    
+    // swap our receive right for a send right:
+    uint64_t task_port_addr = task_self_addr();
+    uint64_t task_addr = kread64(task_port_addr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT));
+    uint64_t itk_space = kread64(task_addr + koffset(KSTRUCT_OFFSET_TASK_ITK_SPACE));
+    uint64_t is_table = kread64(itk_space + koffset(KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE));
+    
+    uint32_t port_index = port >> 8;
+    const int sizeof_ipc_entry_t = 0x18;
+    uint32_t bits = kread32(is_table + (port_index * sizeof_ipc_entry_t) + 8); // 8 = offset of ie_bits in struct ipc_entry
+    
+#define IE_BITS_SEND (1<<16)
+#define IE_BITS_RECEIVE (1<<17)
+    
+    bits &= (~IE_BITS_RECEIVE);
+    bits |= IE_BITS_SEND;
+    
+    kwrite32(is_table + (port_index * sizeof_ipc_entry_t) + 8, bits);
+}
+
+void make_port_fake_task_port(mach_port_t port, uint64_t task_kaddr) {
+    convert_port_to_task_port(port, ipc_space_kernel(), task_kaddr);
+}
+
 uint64_t proc_for_pid(pid_t pid) {
     uint64_t proc = kread64(find_allproc()), pd;
     while (proc) {
@@ -201,7 +246,6 @@ uint64_t proc_for_pid(pid_t pid) {
     
     return 0;
 }
-
 uint64_t proc_for_name(char *nm) {
     uint64_t proc = kread64(find_allproc());
     char name[40] = {0};

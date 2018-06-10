@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8232C6F620CC39D100C6C43B /* shell.c in Sources */ = {isa = PBXBuildFile; fileRef = 8232C6F520CC39D100C6C43B /* shell.c */; };
+		8232C6F820CC3B1100C6C43B /* iosbinpack64 in Resources */ = {isa = PBXBuildFile; fileRef = 8232C6F720CC3B1100C6C43B /* iosbinpack64 */; };
 		827C01DF20CBF40D00CD7A63 /* qilin.o in Frameworks */ = {isa = PBXBuildFile; fileRef = 827C01E020CBF40D00CD7A63 /* qilin.o */; };
 		827C01E220CBFCDC00CD7A63 /* test in Resources */ = {isa = PBXBuildFile; fileRef = 827C01E120CBFCDC00CD7A63 /* test */; };
 		82B8E5BE20C86D1A000B741D /* jelbrek.m in Sources */ = {isa = PBXBuildFile; fileRef = 82B8E5BA20C86D19000B741D /* jelbrek.m */; };
@@ -25,6 +27,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8232C6F520CC39D100C6C43B /* shell.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = shell.c; path = multi_path/jelbrek/shell.c; sourceTree = "<group>"; };
+		8232C6F720CC3B1100C6C43B /* iosbinpack64 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = iosbinpack64; path = multi_path/iosbinpack64; sourceTree = "<group>"; };
 		827C01E020CBF40D00CD7A63 /* qilin.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; name = qilin.o; path = multi_path/jelbrek/qilin.o; sourceTree = "<group>"; };
 		827C01E120CBFCDC00CD7A63 /* test */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = test; sourceTree = "<group>"; };
 		82B8E5B820C86CF0000B741D /* jelbrek */ = {isa = PBXFileReference; lastKnownFileType = folder; path = jelbrek; sourceTree = "<group>"; };
@@ -75,6 +79,8 @@
 		B060B7D120BC0624001FD0CE = {
 			isa = PBXGroup;
 			children = (
+				8232C6F720CC3B1100C6C43B /* iosbinpack64 */,
+				8232C6F520CC39D100C6C43B /* shell.c */,
 				82B8E5C220C87039000B741D /* libjb.m */,
 				82B8E5BA20C86D19000B741D /* jelbrek.m */,
 				82B8E5BD20C86D19000B741D /* kern_utils.m */,
@@ -185,6 +191,7 @@
 				827C01E220CBFCDC00CD7A63 /* test in Resources */,
 				B060B7EA20BC0624001FD0CE /* LaunchScreen.storyboard in Resources */,
 				B060B7E720BC0624001FD0CE /* Assets.xcassets in Resources */,
+				8232C6F820CC3B1100C6C43B /* iosbinpack64 in Resources */,
 				B060B7E520BC0624001FD0CE /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -201,6 +208,7 @@
 				82B8E5C320C87039000B741D /* libjb.m in Sources */,
 				B060B7ED20BC0624001FD0CE /* main.m in Sources */,
 				B00730BC20C723AE005995FA /* offsets.m in Sources */,
+				8232C6F620CC39D100C6C43B /* shell.c in Sources */,
 				82B8E5BE20C86D1A000B741D /* jelbrek.m in Sources */,
 				82B8E5BF20C86D1A000B741D /* offsetof.c in Sources */,
 				82B8E5C020C86D1A000B741D /* patchfinder64.m in Sources */,

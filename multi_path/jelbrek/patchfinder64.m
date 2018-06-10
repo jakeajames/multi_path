@@ -613,6 +613,7 @@ term_kernel(void)
 #define INSN_CALL 0x94000000, 0xFC000000
 #define INSN_B    0x14000000, 0xFC000000
 #define INSN_CBZ  0x34000000, 0xFC000000
+#define INSN_ADRP 0x90000000, 0x9F000000
 
 addr_t
 find_register_value(addr_t where, int reg)
@@ -881,4 +882,3 @@ addr_t find_amficache(void) {
     }
     return val + kerndumpbase;
 }
-
