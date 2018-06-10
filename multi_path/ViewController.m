@@ -114,7 +114,7 @@ next:
     setKernelSymbol("_kernproc", find_kernproc()-kslide);
     
     platformizeMe();
-    borrowEntitlementsFromDonor("/usr/bin/sysdiagnose","-u");
+    borrowEntitlementsFromDonor("/usr/bin/sysdiagnose", NULL);
     castrateAmfid();
     
     NSString *testbin = [NSString stringWithFormat:@"%@/test", [[NSBundle mainBundle] bundlePath]];
