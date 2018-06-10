@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
-    <device id="retina4_7" orientation="portrait">
+    <device id="retina3_5" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
@@ -14,13 +14,13 @@
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="480"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="d5x-Dt-hZz">
-                                <rect key="frame" x="168" y="20" width="39" height="34"/>
+                                <rect key="frame" x="140.5" y="20" width="39" height="38"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="34" id="OBp-Ao-WkM"/>
+                                    <constraint firstAttribute="height" constant="38" id="P4f-Ha-ICf"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="35"/>
                                 <state key="normal" title="go"/>
@@ -29,7 +29,7 @@
                                 </connections>
                             </button>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="r1n-NB-Mcq">
-                                <rect key="frame" x="44" y="73" width="286.5" height="474"/>
+                                <rect key="frame" x="44" y="66" width="232" height="394"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
@@ -37,12 +37,12 @@
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="d5x-Dt-hZz" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="C0P-iy-Vm6"/>
-                            <constraint firstItem="d5x-Dt-hZz" firstAttribute="centerX" secondItem="r1n-NB-Mcq" secondAttribute="centerX" id="RaB-5x-NhL"/>
-                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="44" id="gZY-ju-Mho"/>
-                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="top" secondItem="d5x-Dt-hZz" secondAttribute="bottom" constant="19" id="gnq-QX-iAf"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="r1n-NB-Mcq" secondAttribute="bottom" constant="120" id="tX8-OY-U9Y"/>
-                            <constraint firstItem="d5x-Dt-hZz" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="xhm-bm-3aV"/>
+                            <constraint firstItem="d5x-Dt-hZz" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="2RS-l9-4C6"/>
+                            <constraint firstItem="d5x-Dt-hZz" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="K80-P3-3JZ"/>
+                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="44" id="Mj2-0D-yf8"/>
+                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="top" secondItem="d5x-Dt-hZz" secondAttribute="bottom" constant="8" symbolic="YES" id="a9E-vS-Zi2"/>
+                            <constraint firstAttribute="bottom" secondItem="r1n-NB-Mcq" secondAttribute="bottom" constant="20" symbolic="YES" id="i38-cy-q7q"/>
+                            <constraint firstItem="d5x-Dt-hZz" firstAttribute="centerX" secondItem="r1n-NB-Mcq" secondAttribute="centerX" id="vuF-IH-0jb"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
@@ -52,7 +52,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="116.25" y="117.25352112676056"/>
+            <point key="canvasLocation" x="116" y="116.49175412293854"/>
         </scene>
     </scenes>
 </document>
