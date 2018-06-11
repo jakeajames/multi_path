@@ -48,6 +48,7 @@ extern unsigned offsetof_t_flags;
 
 extern unsigned offsetof_v_mount;
 extern unsigned offsetof_mnt_flag;
+extern unsigned offsetof_mnt_data
 
 #define	CS_VALID		0x0000001	/* dynamically valid */
 #define CS_ADHOC		0x0000002	/* ad hoc signed */
