@@ -278,3 +278,19 @@ uint64_t find_kernproc() {
     
     return 0;
 }
+/*uint64_t getVnodeAtPath(const char *path) {
+    extern uint64_t kslide;
+    
+    int fd = open(path, O_RDONLY);
+    
+    uint64_t ksym_vnode_getfromfd = 0xfffffff0071dee5c;
+    uint64_t ksym_vfs_context_current = 0xfffffff0071f500c; //thanks iBSparkes aka PsychoTea
+
+    uint64_t context = zm_fix_addr(kexecute(ksym_vfs_context_current + kslide, 1, 0, 0, 0, 0, 0, 0)); //thanks again
+    uint64_t vnode = kalloc(sizeof(uint64_t *));
+    
+    kexecute(ksym_vnode_getfromfd + kslide, context, fd, vnode, 0, 0, 0, 0);
+    
+    return kread64(vnode);
+}
+*/
