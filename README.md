@@ -1,5 +1,5 @@
 # multi_path
-multi_path with root, sandbox escape and amfid patch
+multi_path with root, sandbox escape, codesign patch, bind shell, r/w for 11.0-11.2.6. Call it a jailbreak if you want, or... a jelbrek
 
 Credits to: Ian Beer for multi_path and mach_portal, Jonathan Levin for amfid patch, Jonathan Seals for find_kernel_base, Electra Team for minor stuff
 
@@ -15,4 +15,4 @@ Includes a root shell. Connect with netcat. You can drop any binaries in the ios
     </dict>
     </plist>
 
-Remounting on 11.3.x is not complete and doesn't work properly. If you want to test you have to update offsets as stated in kern_utils.m
+Note: Remounting on 11.3.x is not complete and doesn't work properly. If you want to test or mess with it you have to update offsets as stated in kern_utils.m.
