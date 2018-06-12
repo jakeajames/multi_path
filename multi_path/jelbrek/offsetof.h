@@ -47,6 +47,8 @@ extern unsigned offsetof_csb_platform_path;
 extern unsigned offsetof_t_flags;
 
 extern unsigned offsetof_v_mount;
+extern unsigned offsetof_v_specinfo;
+extern unsigned offsetof_specflags;
 extern unsigned offsetof_mnt_flag;
 extern unsigned offsetof_mnt_data;
 
