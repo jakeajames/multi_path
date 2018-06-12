@@ -13,4 +13,5 @@ uint64_t find_bcopy(void);
 uint64_t find_rootvnode(void);
 uint64_t find_trustcache(void);
 uint64_t find_amficache(void);
+uint64_t find_zone_map_ref(void);
 #endif

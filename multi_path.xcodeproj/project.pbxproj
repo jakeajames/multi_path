@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		821AE2D320CEA591000F8B16 /* kexecute.c in Sources */ = {isa = PBXBuildFile; fileRef = 821AE2D220CEA591000F8B16 /* kexecute.c */; };
+		821AE2D520CEA721000F8B16 /* IOKit.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 821AE2D420CEA721000F8B16 /* IOKit.tbd */; };
 		8232C6F620CC39D100C6C43B /* shell.c in Sources */ = {isa = PBXBuildFile; fileRef = 8232C6F520CC39D100C6C43B /* shell.c */; };
 		8232C6F820CC3B1100C6C43B /* iosbinpack64 in Resources */ = {isa = PBXBuildFile; fileRef = 8232C6F720CC3B1100C6C43B /* iosbinpack64 */; };
 		827C01DF20CBF40D00CD7A63 /* qilin.o in Frameworks */ = {isa = PBXBuildFile; fileRef = 827C01E020CBF40D00CD7A63 /* qilin.o */; };
@@ -27,6 +29,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		821AE2D220CEA591000F8B16 /* kexecute.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = kexecute.c; path = multi_path/jelbrek/kexecute.c; sourceTree = "<group>"; };
+		821AE2D420CEA721000F8B16 /* IOKit.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = IOKit.tbd; path = multi_path/jelbrek/IOKit.tbd; sourceTree = "<group>"; };
 		8232C6F520CC39D100C6C43B /* shell.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = shell.c; path = multi_path/jelbrek/shell.c; sourceTree = "<group>"; };
 		8232C6F720CC3B1100C6C43B /* iosbinpack64 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = iosbinpack64; path = multi_path/iosbinpack64; sourceTree = "<group>"; };
 		827C01E020CBF40D00CD7A63 /* qilin.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; name = qilin.o; path = multi_path/jelbrek/qilin.o; sourceTree = "<group>"; };
@@ -61,6 +65,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				821AE2D520CEA721000F8B16 /* IOKit.tbd in Frameworks */,
 				827C01DF20CBF40D00CD7A63 /* qilin.o in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +76,7 @@
 		827C01DE20CBF40D00CD7A63 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				821AE2D420CEA721000F8B16 /* IOKit.tbd */,
 				827C01E020CBF40D00CD7A63 /* qilin.o */,
 			);
 			name = Frameworks;
@@ -79,6 +85,7 @@
 		B060B7D120BC0624001FD0CE = {
 			isa = PBXGroup;
 			children = (
+				821AE2D220CEA591000F8B16 /* kexecute.c */,
 				8232C6F720CC3B1100C6C43B /* iosbinpack64 */,
 				8232C6F520CC39D100C6C43B /* shell.c */,
 				82B8E5C220C87039000B741D /* libjb.m */,
@@ -213,6 +220,7 @@
 				82B8E5BF20C86D1A000B741D /* offsetof.c in Sources */,
 				82B8E5C020C86D1A000B741D /* patchfinder64.m in Sources */,
 				82B8E5C120C86D1A000B741D /* kern_utils.m in Sources */,
+				821AE2D320CEA591000F8B16 /* kexecute.c in Sources */,
 				B060B7DF20BC0624001FD0CE /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -346,36 +354,50 @@
 		B060B7F120BC0624001FD0CE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = multi_path/multi_path.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 9F3ED5X4UJ;
 				ENABLE_BITCODE = NO;
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/multi_path/jelbrek/include\"";
 				INFOPLIST_FILE = multi_path/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/multi_path/jelbrek",
+				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jakeashacks.multi-path";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/multi_path/jelbrek/include\"";
 			};
 			name = Debug;
 		};
 		B060B7F220BC0624001FD0CE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = multi_path/multi_path.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 9F3ED5X4UJ;
 				ENABLE_BITCODE = NO;
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/multi_path/jelbrek/include\"";
 				INFOPLIST_FILE = multi_path/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/multi_path/jelbrek",
+				);
 				OTHER_LDFLAGS = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.jakeashacks.multi-path";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "\"$(SRCROOT)/multi_path/jelbrek/include\"";
 			};
 			name = Release;
 		};

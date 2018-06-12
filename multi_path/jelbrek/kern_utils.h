@@ -18,12 +18,13 @@
 #include <errno.h>
 #include <mach/mach.h>
 #include <sys/stat.h>
-
+#include <sys/mount.h>
 
 // Needed definitions
 kern_return_t mach_vm_allocate(vm_map_t target, mach_vm_address_t *address, mach_vm_size_t size, int flags);
 kern_return_t mach_vm_read_overwrite(vm_map_t target_task, mach_vm_address_t address, mach_vm_size_t size, mach_vm_address_t data, mach_vm_size_t *outsize);
 kern_return_t mach_vm_write(vm_map_t target_task, mach_vm_address_t address, vm_offset_t data, mach_msg_type_number_t dataCnt);
+kern_return_t mach_vm_deallocate(vm_map_t target, mach_vm_address_t *address, mach_vm_size_t size);
 
 // "General" purpose
 uint8_t *get_sha256(uint8_t* code_dir);
@@ -34,6 +35,7 @@ int file_exist(char *filename);
 // Kernel utility stuff
 void init_kernel_utils(mach_port_t tfp0);
 uint64_t kalloc(vm_size_t size);
+void kfree(mach_vm_address_t address, vm_size_t size);
 size_t kread(uint64_t where, void *p, size_t size);
 uint32_t kread32(uint64_t where);
 uint64_t kread64(uint64_t where);
@@ -49,4 +51,5 @@ uint64_t find_port_address(mach_port_name_t port);
 uint64_t task_self_addr(void);
 uint64_t kmem_alloc_wired(uint64_t size);
 uint64_t find_kernproc(void);
+uint64_t getVnodeAtPath(const char *path);
 #endif /* fun_utils_h */

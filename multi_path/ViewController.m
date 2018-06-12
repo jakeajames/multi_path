@@ -13,6 +13,7 @@
 #include "jelbrek/offsetof.h"
 #include "jelbrek/patchfinder64.h"
 #include "jelbrek/shell.h"
+#include "jelbrek/kexecute.h"
 
 #include <sys/stat.h>
 #include <sys/spawn.h>
@@ -165,10 +166,21 @@ next:
     
     [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat: nc %@ 4141", [self getIPAddress]]];
     
+    if (@available(iOS 11.3, *)) {
+        [self log:@"Remount eta son?"];
+    } else if (@available(iOS 11.0, *)) {
+        remount1126();
+        [self log:[NSString stringWithFormat:@"Did we mount / as read+write? %s\n", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no"]];
+
+    }
+    
+    term_kexecute();
+    
     dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
         if (!rv)
             drop_payload(); //chmod 777 all binaries and spawn a shell
     });
+    
     
     //to connect use netcat:
     //nc 192.168.XX.XX 4141

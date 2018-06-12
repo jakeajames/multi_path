@@ -45,7 +45,8 @@ unsigned offsetof_csb_platform_path = 0xA8;   // cs_blob::csb_platform_path
 unsigned offsetof_t_flags = 0x3a0; // task::t_flags
 
 unsigned offsetof_v_mount = 0xd8;             // vnode::v_mount
-unsigned offsetof_v_specinfo = 0x78;          // I HOPE. One thing is sure, this only exists for mount points (/dev/disk0s1s1 etc)
-unsigned offsetof_specflags = 0x10;           // ALSO HOPE
+unsigned offsetof_v_specinfo = 0x78;          // vnode::v_specinfo
+unsigned offsetof_specflags = 0x10;
 unsigned offsetof_mnt_flag = 0x70;            // mount::mnt_flag
 unsigned offsetof_mnt_data = 0x8f8;           // mount::mnt_data
+

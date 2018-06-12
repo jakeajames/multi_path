@@ -14,3 +14,5 @@ Includes a root shell. Connect with netcat. You can drop any binaries in the ios
         <false/>
     </dict>
     </plist>
+
+Remounting on 11.3.x is not complete and doesn't work properly. If you want to test you have to update offsets as stated in kern_utils.m

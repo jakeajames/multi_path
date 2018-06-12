@@ -6,6 +6,7 @@
 #include "offsetof.h"
 #include "jelbrek.h"
 #include <sys/mount.h>
+#include "kexecute.h"
 
 //#include "inject_criticald.h"
 //#include "unlocknvram.h"
@@ -16,6 +17,7 @@ void init_jelbrek(mach_port_t tfp0, uint64_t kernel_base) {
     init_kernel_utils(tfp0);
     init_kernel(kernel_base, NULL);
     initQiLin(tfp0, kernel_base); //Jonathan Levin: http://newosxbook.com/QiLin/
+    init_kexecute();
 }
 
 kern_return_t trust_bin(const char *path) {
@@ -87,20 +89,22 @@ BOOL get_root(pid_t pid) {
 }
 
 
-/*void remount(){
+void remount1126(){
     uint64_t _rootvnode = find_rootvnode();
     uint64_t rootfs_vnode = kread64(_rootvnode);
+    printf("\n[*] vnode of /: 0x%llx\n", rootfs_vnode);
     uint64_t v_mount = kread64(rootfs_vnode + offsetof_v_mount);
     uint32_t v_flag = kread32(v_mount + offsetof_mnt_flag);
-    
+    printf("[*] Removing RDONLY, NOSUID and ROOTFS flags\n");
+    printf("[*] Flags before 0x%x\n", v_flag);
     v_flag = v_flag & ~MNT_NOSUID;
     v_flag = v_flag & ~MNT_RDONLY;
-    
+    printf("[*] Flags now 0x%x\n", v_flag);
     kwrite32(v_mount + offsetof_mnt_flag, v_flag & ~MNT_ROOTFS);
     
     char *nmz = strdup("/dev/disk0s1s1");
     int rv = mount("apfs", "/", MNT_UPDATE, (void *)&nmz);
-    printf("remounting: %d\n", rv);
+    printf("[*] Remounting /, return value = %d\n", rv);
     
     v_mount = kread64(rootfs_vnode + offsetof_v_mount);
     kwrite32(v_mount + offsetof_mnt_flag, v_flag);
@@ -113,4 +117,73 @@ BOOL get_root(pid_t pid) {
     }
     close(fd);
     printf("Did we mount / as read+write? %s\n", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no");
-}*/
+}
+
+void createDirAtPath(const char* path) {
+    mkdir(path, 0755);
+}
+
+void mountDevAtPathAsRW(const char* devpath, const char* path) {
+    
+    uint64_t selfucred = kread64(proc_for_pid(getpid()) + offsetof_p_ucred); //our credentials
+    uint64_t kernucred = kread64(proc_for_pid(0) + offsetof_p_ucred); //kernel's credentials
+    
+    kwrite64(proc_for_pid(getpid()) + offsetof_p_ucred, kernucred); //temporarily give us kernel credentials
+    
+    //uint32_t flags = kread32(kread64(getVnodeAtPath("/dev/disk0s1s2") + offsetof_v_mount) + offsetof_mnt_flag);
+    
+    int rv = mount("apfs", path, 0, &devpath); //FIXME
+    
+    printf("[*] Mounting %s at %s, return value = %d\n", devpath, path, rv);
+    
+    kwrite64(proc_for_pid(getpid()) + offsetof_p_ucred, selfucred); //give us our original credentials back
+}
+
+//running this as is will probably make the screen black and reboot a few seconds later, at least that happened to me on 11.1.2
+//interesting though after reboot the RWTEST file will be created on /var
+
+void remount1131(){
+    
+    char *devPath = strdup("/dev/disk0s1s1");
+    uint64_t devVnode = getVnodeAtPath(devPath);
+    printf("\n[*] vnode of /dev/disk0s1s1: 0x%llx\n", devVnode);
+    
+    printf("[*] Clearing specflags \n");
+    printf("[*] Specflags before 0x%llx\n", kread64(kread64(devVnode + offsetof_v_specinfo) + offsetof_specflags));
+    kwrite64(kread64(devVnode + offsetof_v_specinfo) + offsetof_specflags, 0); // clear dev vnode’s v_specflags
+    printf("[*] Specflags now 0x%llx\n", kread64(kread64(devVnode + offsetof_v_specinfo) + offsetof_specflags));
+    
+    char *newMPPath = strdup("/private/var/mobile/tmp");
+    createDirAtPath(newMPPath);
+    mountDevAtPathAsRW(devPath, newMPPath);
+    
+    uint64_t newMPVnode = getVnodeAtPath(newMPPath);
+    printf("[*] Vnode of /private/var/mobile/tmp 0x%llx\n", newMPVnode);
+    uint64_t newMPMount = kread64(newMPVnode + offsetof_v_mount);
+    uint64_t newMPMountData = kread64(newMPMount + offsetof_mnt_data);
+    printf("[*] Mount data of /private/var/mobile/tmp: 0x%llx\n", newMPMountData);
+    
+    uint64_t rootVnode = kread64(find_rootvnode());
+    printf("[*] vnode of /: 0x%llx\n", rootVnode);
+    uint64_t rootMount = kread64(rootVnode + offsetof_v_mount);
+    uint32_t rootMountFlag = kread32(rootMount + offsetof_mnt_flag);
+    printf("[*] Removing RDONLY, NOSUID and ROOTFS flags\n");
+    printf("[*] Flags before 0x%x\n", rootMountFlag);
+    kwrite32(rootMount + offsetof_mnt_flag, rootMountFlag & ~ ( MNT_NOSUID | MNT_RDONLY | MNT_ROOTFS));
+    printf("[*] Flags now 0x%x\n", kread32(rootMount + offsetof_mnt_flag));
+    int rv = mount("apfs", "/", MNT_UPDATE, &devPath);
+    printf("[*] Remounting /, return value = %d\n", rv);
+    
+    printf("[*] Changning mount data, before: 0x%llx\n", kread64(rootMount + offsetof_mnt_data));
+    kwrite64(rootMount + offsetof_mnt_data, newMPMountData);
+    printf("[*] Mount data now: 0x%llx\n", kread64(rootMount + offsetof_mnt_data));
+    
+    int fd = open("/RWTEST", O_RDONLY);
+    if (fd == -1) {
+        fd = creat("/RWTEST", 0777);
+    } else {
+        printf("File already exists!\n");
+    }
+    close(fd);
+    printf("Did we mount / as read+write? %s\n", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "YES" : "NO");
+}

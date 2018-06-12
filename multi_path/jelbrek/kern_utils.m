@@ -10,6 +10,9 @@
 #include "patchfinder64.h"
 #include "offsetof.h"
 #include "../offsets.h"
+#include "kexecute.h"
+
+#include "QiLin.h"
 
 /****** Kernel utility stuff ******/
 
@@ -25,6 +28,9 @@ uint64_t kalloc(vm_size_t size) {
     return address;
 }
 
+void kfree(mach_vm_address_t address, vm_size_t size) {
+    mach_vm_deallocate(tfpzero, address, size);
+}
 
 uint64_t task_self_addr() {
     uint64_t selfproc = proc_for_pid(getpid());
@@ -143,7 +149,7 @@ size_t kread(uint64_t where, void *p, size_t size) {
         }
         rv = mach_vm_read_overwrite(tfpzero, where + offset, chunk, (mach_vm_address_t)p + offset, &sz);
         if (rv || sz == 0) {
-            printf("[*] error on kread(0x%016llx)\n", (offset + where));
+            printf("[*] error on kread(0x%016llx) AAA 0x%llx\n", (offset + where), where);
             break;
         }
         offset += sz;
@@ -173,7 +179,7 @@ size_t kwrite(uint64_t where, const void *p, size_t size) {
         }
         rv = mach_vm_write(tfpzero, where + offset, (mach_vm_offset_t)p + offset, chunk);
         if (rv) {
-            printf("[*] error on kwrite(0x%016llx)\n", (offset + where));
+            printf("[*] error on kwrite(0x%016llx) AAAN 0x%llx\n", (offset + where), where);
             break;
         }
         offset += chunk;
@@ -257,6 +263,7 @@ uint64_t proc_for_name(char *nm) {
     return 0;
 }
 
+
 unsigned int pid_for_name(char *nm) {
     uint64_t proc = kread64(find_allproc());
     char name[40] = {0};
@@ -278,19 +285,61 @@ uint64_t find_kernproc() {
     
     return 0;
 }
-/*uint64_t getVnodeAtPath(const char *path) {
+
+typedef struct {
+    uint64_t prev;
+    uint64_t next;
+    uint64_t start;
+    uint64_t end;
+} kmap_hdr_t;
+
+uint64_t zm_fix_addr(uint64_t addr) {
+    static kmap_hdr_t zm_hdr = {0, 0, 0, 0};
+    
+    if (zm_hdr.start == 0) {
+        // xxx rk64(0) ?!
+        uint64_t zone_map = kread64(find_zone_map_ref());
+        // hdr is at offset 0x10, mutexes at start
+        size_t r = kread(zone_map + 0x10, &zm_hdr, sizeof(zm_hdr));
+        //printf("zm_range: 0x%llx - 0x%llx (read 0x%zx, exp 0x%zx)\n", zm_hdr.start, zm_hdr.end, r, sizeof(zm_hdr));
+        
+        if (r != sizeof(zm_hdr) || zm_hdr.start == 0 || zm_hdr.end == 0) {
+            printf("kread of zone_map failed!\n");
+            exit(1);
+        }
+        
+        if (zm_hdr.end - zm_hdr.start > 0x100000000) {
+            printf("zone_map is too big, sorry.\n");
+            exit(1);
+        }
+    }
+    
+    uint64_t zm_tmp = (zm_hdr.start & 0xffffffff00000000) | ((addr) & 0xffffffff);
+    
+    return zm_tmp < zm_hdr.start ? zm_tmp + 0x100000000 : zm_tmp;
+}
+
+
+uint64_t getVnodeAtPath(const char *path) {
     extern uint64_t kslide;
     
-    int fd = open(path, O_RDONLY);
+    /*grab those using a decrypted kernelcache and nm/jtool. I am not able to make a patchfinder yet cus I'm still an amateur
+     
+     Run:
+     
+     nm /path/to/kernelcache | grep _vnode_lookup
+     nm /path/to/kernelcache | grep vfs_context_current
+     
+     */
     
-    uint64_t ksym_vnode_getfromfd = 0xfffffff0071dee5c;
-    uint64_t ksym_vfs_context_current = 0xfffffff0071f500c; //thanks iBSparkes aka PsychoTea
-
-    uint64_t context = zm_fix_addr(kexecute(ksym_vfs_context_current + kslide, 1, 0, 0, 0, 0, 0, 0)); //thanks again
-    uint64_t vnode = kalloc(sizeof(uint64_t *));
+    //iPad Air 2 iOS 11.1.2
+    uint64_t ksym_vnode_lookup = 0xfffffff0071d6c84;
+    uint64_t ksym_vfs_context_current = 0xfffffff0071f500c;
     
-    kexecute(ksym_vnode_getfromfd + kslide, context, fd, vnode, 0, 0, 0, 0);
+    uint64_t context = zm_fix_addr(kexecute(ksym_vfs_context_current + kslide, 1, 0, 0, 0, 0, 0, 0)); //grab the vfs_context thanks iBSparkes aka PsychoTea
+    uint64_t vnode = kalloc(sizeof(unsigned int *)); //allocate memory on the kernel and grab the address
     
-    return kread64(vnode);
+    kexecute(ksym_vnode_lookup + kslide, path, 0, vnode, context, 0, 0, 0); //execute vnode_lookup()
+    
+    return kread64(vnode); //grab what vnode_lookup wrote in our vnode pointer
 }
-*/
