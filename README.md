@@ -1,4 +1,7 @@
 # multi_path
+
+NO DEV ACCOUNT: https://github.com/jakeajames/empty_list
+
 multi_path with root, sandbox escape, codesign patch, bind shell, r/w for 11.0-11.2.6. Call it a jailbreak if you want, or... a jelbrek
 
 Credits to: Ian Beer for multi_path and mach_portal, Jonathan Levin for amfid patch, Jonathan Seals for find_kernel_base, Electra Team for minor stuff
