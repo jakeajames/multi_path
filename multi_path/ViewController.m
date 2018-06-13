@@ -87,7 +87,7 @@ next:
 //https://stackoverflow.com/questions/6807788/how-to-get-ip-address-of-iphone-programmatically
 - (NSString *)getIPAddress {
     
-    NSString *address = @"error";
+    NSString *address = @"are you connected to internet?";
     struct ifaddrs *interfaces = NULL;
     struct ifaddrs *temp_addr = NULL;
     int success = 0;
@@ -164,7 +164,7 @@ next:
 
     [self log:(rv) ? @"Failed to patch codesign!" : @"SUCCESS! Patched codesign!"];
     
-    [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat: nc %@ 4141", [self getIPAddress]]];
+    [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat:\n nc %@ 4141", [self getIPAddress]]];
     
     if (@available(iOS 11.3, *)) {
         [self log:@"Remount eta son?"];
@@ -187,6 +187,7 @@ next:
     //replace your IP in there
     
 }
+
 - (IBAction)go:(id)sender {
     taskforpidzero = run();
     kernel_base = find_kernel_base();
