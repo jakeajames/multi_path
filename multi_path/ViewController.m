@@ -8,12 +8,14 @@
 
 #import "ViewController.h"
 #include "sploit.h"
-#include "jelbrek/jelbrek.h"
-#include "jelbrek/kern_utils.h"
-#include "jelbrek/offsetof.h"
-#include "jelbrek/patchfinder64.h"
-#include "jelbrek/shell.h"
-#include "jelbrek/kexecute.h"
+#include "jelbrek.h"
+#include "kern_utils.h"
+#include "offsetof.h"
+#include "patchfinder64.h"
+#include "shell.h"
+#include "kexecute.h"
+#include "unlocknvram.h"
+#include "remap_tfp_set_hsp.h"
 
 #include <sys/stat.h>
 #include <sys/spawn.h>
@@ -87,7 +89,7 @@ next:
 //https://stackoverflow.com/questions/6807788/how-to-get-ip-address-of-iphone-programmatically
 - (NSString *)getIPAddress {
     
-    NSString *address = @"are you connected to internet?";
+    NSString *address = @"Are you connected to internet?";
     struct ifaddrs *interfaces = NULL;
     struct ifaddrs *temp_addr = NULL;
     int success = 0;
@@ -164,15 +166,20 @@ next:
 
     [self log:(rv) ? @"Failed to patch codesign!" : @"SUCCESS! Patched codesign!"];
     
-    [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat:\n nc %@ 4141", [self getIPAddress]]];
+    [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat: nc %@ 4141", [self getIPAddress]]];
     
     if (@available(iOS 11.3, *)) {
         [self log:@"Remount eta son?"];
     } else if (@available(iOS 11.0, *)) {
         remount1126();
-        [self log:[NSString stringWithFormat:@"Did we mount / as read+write? %s\n", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no"]];
+        [self log:[NSString stringWithFormat:@"Did we mount / as read+write? %s", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no"]];
 
     }
+    
+    mach_port_t mapped_tfp0 = MACH_PORT_NULL;
+    remap_tfp0_set_hsp4(&mapped_tfp0);
+    [self log:[NSString stringWithFormat:@"enabled host_get_special_port_4_? %@", (mapped_tfp0 == MACH_PORT_NULL) ? @"FAIL" : @"SUCCESS"]];
+    unlocknvram();
     
     term_kexecute();
     
@@ -187,7 +194,6 @@ next:
     //replace your IP in there
     
 }
-
 - (IBAction)go:(id)sender {
     taskforpidzero = run();
     kernel_base = find_kernel_base();

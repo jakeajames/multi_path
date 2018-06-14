@@ -1,10 +1,7 @@
 # multi_path
+multi_path with root, sandbox escape, codesign patch, bind shell, r/w for 11.0-11.2.6, nvram unlock (from Electra) and host_get_special_port 4 (from Electra). Call it a jailbreak if you want, or... a jelbrek
 
-NO DEV ACCOUNT: https://github.com/jakeajames/empty_list
-
-multi_path with root, sandbox escape, codesign patch, bind shell, r/w for 11.0-11.2.6. Call it a jailbreak if you want, or... a jelbrek
-
-Credits to: Ian Beer for multi_path and mach_portal, Jonathan Levin for amfid patch, Jonathan Seals for find_kernel_base, Electra Team for minor stuff
+Credits to: Ian Beer for multi_path and mach_portal, Jonathan Levin for amfid patch, Jonathan Seals for find_kernel_base, Electra Team (especially stek29) and PsychoTea (@iBSparkes)
 
 Includes a root shell. Connect with netcat. You can drop any binaries in the iosbinpack64 directory. All binaries must have at least these two entitlements:
 

@@ -33,22 +33,36 @@ void kfree(mach_vm_address_t address, vm_size_t size) {
 }
 
 uint64_t task_self_addr() {
+    
     uint64_t selfproc = proc_for_pid(getpid());
     if (selfproc == 0) {
         fprintf(stderr, "failed to find our task addr\n");
         exit(EXIT_FAILURE);
     }
     uint64_t addr = kread64(selfproc + offsetof_task);
-    return addr;
+    
+    uint64_t task_addr = addr;
+    uint64_t itk_space = kread64(task_addr + offsetof_itk_space);
+    
+    uint64_t is_table = kread64(itk_space + offsetof_ipc_space_is_table);
+    
+    uint32_t port_index = mach_task_self() >> 8;
+    const int sizeof_ipc_entry_t = 0x18;
+    
+    uint64_t port_addr = kread64(is_table + (port_index * sizeof_ipc_entry_t));
+    
+    return port_addr;
 }
 
 uint64_t ipc_space_kernel() {
-    return kread64(task_self_addr() + 060);
+    return kread64(task_self_addr() + 0x60);
 }
 
 uint64_t find_port_address(mach_port_name_t port) {
    
-    uint64_t task_addr = task_self_addr();
+    uint64_t task_port_addr = task_self_addr();
+    //uint64_t task_addr = task_self_addr();
+    uint64_t task_addr = kread64(task_port_addr + offsetof_ip_kobject);
     uint64_t itk_space = kread64(task_addr + offsetof_itk_space);
     
     uint64_t is_table = kread64(itk_space + offsetof_ipc_space_is_table);
