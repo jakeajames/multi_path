@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 		821AE2D520CEA721000F8B16 /* IOKit.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 821AE2D420CEA721000F8B16 /* IOKit.tbd */; };
 		8232C6F820CC3B1100C6C43B /* iosbinpack64 in Resources */ = {isa = PBXBuildFile; fileRef = 8232C6F720CC3B1100C6C43B /* iosbinpack64 */; };
+		8258AE7E20D3BF0600AB9BC0 /* osobject.c in Sources */ = {isa = PBXBuildFile; fileRef = 8258AE7D20D3BF0500AB9BC0 /* osobject.c */; };
+		8258AE8920D3EC7C00AB9BC0 /* dylibs in Resources */ = {isa = PBXBuildFile; fileRef = 8258AE8820D3EC7C00AB9BC0 /* dylibs */; };
+		82724E5620D2EEF1005D0EC2 /* amfid_payload.dylib in Resources */ = {isa = PBXBuildFile; fileRef = 82724E5520D2EEF1005D0EC2 /* amfid_payload.dylib */; };
+		82724E5920D2EF20005D0EC2 /* inject_criticald.m in Sources */ = {isa = PBXBuildFile; fileRef = 82724E5720D2EF1F005D0EC2 /* inject_criticald.m */; };
 		827C01E220CBFCDC00CD7A63 /* test in Resources */ = {isa = PBXBuildFile; fileRef = 827C01E120CBFCDC00CD7A63 /* test */; };
 		82FA9AA720D2E24600AFBE92 /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = 82FA9A9320D2E24600AFBE92 /* Readme.md */; };
 		82FA9AA820D2E24600AFBE92 /* screenshot.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 82FA9A9420D2E24600AFBE92 /* screenshot.jpg */; };
@@ -35,6 +39,12 @@
 /* Begin PBXFileReference section */
 		821AE2D420CEA721000F8B16 /* IOKit.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = IOKit.tbd; path = multi_path/jelbrek/IOKit.tbd; sourceTree = "<group>"; };
 		8232C6F720CC3B1100C6C43B /* iosbinpack64 */ = {isa = PBXFileReference; lastKnownFileType = folder; name = iosbinpack64; path = multi_path/iosbinpack64; sourceTree = "<group>"; };
+		8258AE7C20D3BF0500AB9BC0 /* osobject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = osobject.h; sourceTree = "<group>"; };
+		8258AE7D20D3BF0500AB9BC0 /* osobject.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = osobject.c; sourceTree = "<group>"; };
+		8258AE8820D3EC7C00AB9BC0 /* dylibs */ = {isa = PBXFileReference; lastKnownFileType = folder; name = dylibs; path = multi_path/dylibs; sourceTree = "<group>"; };
+		82724E5520D2EEF1005D0EC2 /* amfid_payload.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = amfid_payload.dylib; path = multi_path/amfid_payload.dylib; sourceTree = "<group>"; };
+		82724E5720D2EF1F005D0EC2 /* inject_criticald.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = inject_criticald.m; sourceTree = "<group>"; };
+		82724E5820D2EF1F005D0EC2 /* inject_criticald.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = inject_criticald.h; sourceTree = "<group>"; };
 		827C01E020CBF40D00CD7A63 /* qilin.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; name = qilin.o; path = multi_path/jelbrek/qilin.o; sourceTree = "<group>"; };
 		827C01E120CBFCDC00CD7A63 /* test */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = test; sourceTree = "<group>"; };
 		82FA9A8D20D2E24600AFBE92 /* IOKitKeys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IOKitKeys.h; sourceTree = "<group>"; };
@@ -112,6 +122,8 @@
 			isa = PBXGroup;
 			children = (
 				82FA9A8B20D2E24600AFBE92 /* include */,
+				82724E5820D2EF1F005D0EC2 /* inject_criticald.h */,
+				82724E5720D2EF1F005D0EC2 /* inject_criticald.m */,
 				82FA9A9520D2E24600AFBE92 /* IOKit.tbd */,
 				82FA9A9620D2E24600AFBE92 /* jelbrek.h */,
 				82FA9A9720D2E24600AFBE92 /* jelbrek.m */,
@@ -133,6 +145,8 @@
 				82FA9AA320D2E24600AFBE92 /* qilin.o */,
 				82FA9AA420D2E24600AFBE92 /* shell.c */,
 				82FA9AA520D2E24600AFBE92 /* shell.h */,
+				8258AE7D20D3BF0500AB9BC0 /* osobject.c */,
+				8258AE7C20D3BF0500AB9BC0 /* osobject.h */,
 			);
 			path = jelbrek;
 			sourceTree = "<group>";
@@ -164,6 +178,8 @@
 		B060B7D120BC0624001FD0CE = {
 			isa = PBXGroup;
 			children = (
+				8258AE8820D3EC7C00AB9BC0 /* dylibs */,
+				82724E5520D2EEF1005D0EC2 /* amfid_payload.dylib */,
 				8232C6F720CC3B1100C6C43B /* iosbinpack64 */,
 				B060B7DC20BC0624001FD0CE /* multi_path */,
 				B060B7DB20BC0624001FD0CE /* Products */,
@@ -271,8 +287,10 @@
 				B060B7EA20BC0624001FD0CE /* LaunchScreen.storyboard in Resources */,
 				82FA9AA720D2E24600AFBE92 /* Readme.md in Resources */,
 				B060B7E720BC0624001FD0CE /* Assets.xcassets in Resources */,
+				8258AE8920D3EC7C00AB9BC0 /* dylibs in Resources */,
 				8232C6F820CC3B1100C6C43B /* iosbinpack64 in Resources */,
 				82FA9AA820D2E24600AFBE92 /* screenshot.jpg in Resources */,
+				82724E5620D2EEF1005D0EC2 /* amfid_payload.dylib in Resources */,
 				B060B7E520BC0624001FD0CE /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -288,11 +306,13 @@
 				82FA9AAC20D2E24600AFBE92 /* kexecute.c in Sources */,
 				82FA9AB120D2E24600AFBE92 /* shell.c in Sources */,
 				B030E1F620BC0864000CDD4C /* sploit.c in Sources */,
+				8258AE7E20D3BF0600AB9BC0 /* osobject.c in Sources */,
 				B060B7E220BC0624001FD0CE /* ViewController.m in Sources */,
 				82FA9AAF20D2E24600AFBE92 /* patchfinder64.m in Sources */,
 				B060B7ED20BC0624001FD0CE /* main.m in Sources */,
 				B00730BC20C723AE005995FA /* offsets.m in Sources */,
 				B060B7DF20BC0624001FD0CE /* AppDelegate.m in Sources */,
+				82724E5920D2EF20005D0EC2 /* inject_criticald.m in Sources */,
 				82FA9AAB20D2E24600AFBE92 /* kern_utils.m in Sources */,
 				82FA9ABB20D2E38400AFBE92 /* unlocknvram.c in Sources */,
 				82FA9AAE20D2E24600AFBE92 /* offsetof.c in Sources */,

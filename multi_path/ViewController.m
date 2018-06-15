@@ -16,6 +16,8 @@
 #include "kexecute.h"
 #include "unlocknvram.h"
 #include "remap_tfp_set_hsp.h"
+#include "inject_criticald.h"
+//#include "amfid.h"
 
 #include <sys/stat.h>
 #include <sys/spawn.h>
@@ -23,6 +25,7 @@
 
 #include <ifaddrs.h>
 #include <arpa/inet.h>
+
 
 mach_port_t taskforpidzero;
 uint64_t kernel_base, kslide;
@@ -156,7 +159,44 @@ next:
     kill(pid, SIGSTOP);
     
     castrateAmfid(); //patch amfid
-
+    
+    pid_t amfid = pid_for_name("amfid"), newam = amfid;
+    
+    entitlePid(amfid, "get-task-allow", true, "com.apple.private.skip-library-validation", true); //add required entitlements to load unsigned library
+    empower(amfid); //set csflags
+    
+    NSString *pl = [NSString stringWithFormat:@"%@/amfid_payload.dylib", [[NSBundle mainBundle] bundlePath]];
+   
+    inject_dylib(amfid, (char*)[pl UTF8String]); //hope the signature gets cached and it works after killing amfid
+    
+    while (newam == amfid) {
+        printf("here\n");
+        kill(amfid, SIGSTOP); //kill amfid
+        kill(amfid, SIGSEGV);
+        kill(amfid, SIGKILL);
+        
+        NSString *testbin_ = [NSString stringWithFormat:@"%@/test", [[NSBundle mainBundle] bundlePath]]; //test binary
+        chmod([testbin_ UTF8String], 777); //give it proper permissions
+        
+        //trigger amfid
+        pid_t pd_;
+        const char* args_[] = {[testbin_ UTF8String],  NULL};
+        posix_spawn(&pd_, [testbin_ UTF8String], NULL, NULL, (char **)&args_, NULL);
+        posix_spawn(&pd_, [testbin_ UTF8String], NULL, NULL, (char **)&args_, NULL);
+        posix_spawn(&pd_, [testbin_ UTF8String], NULL, NULL, (char **)&args_, NULL);
+        
+        newam = pid_for_name("amfid"); //update pid
+    }
+    
+    if (newam != 0 && newam != amfid) {
+        printf("Relaunched amfid!\n"); //yay
+    }
+    
+    entitlePid(newam, "get-task-allow", true, "com.apple.private.skip-library-validation", true); //add required entitlements to load unsigned library
+    empower(newam); //set csflags
+    
+    inject_dylib(newam, (char*)[pl UTF8String]);
+    
     NSString *testbin = [NSString stringWithFormat:@"%@/test", [[NSBundle mainBundle] bundlePath]]; //test binary
     chmod([testbin UTF8String], 777); //give it proper permissions
     
@@ -166,21 +206,41 @@ next:
 
     [self log:(rv) ? @"Failed to patch codesign!" : @"SUCCESS! Patched codesign!"];
     
-    [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat: nc %@ 4141", [self getIPAddress]]];
+    if ([[self getIPAddress] isEqualToString:@"Are you connected to internet?"])
+        [self log:@"Connect to Wi-fi in order to use the shell"];
+    else
+        [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat: nc %@ 4141", [self getIPAddress]]];
     
     if (@available(iOS 11.3, *)) {
         [self log:@"Remount eta son?"];
     } else if (@available(iOS 11.0, *)) {
         remount1126();
         [self log:[NSString stringWithFormat:@"Did we mount / as read+write? %s", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no"]];
-
     }
+    
+    int rv2 = -1;
+    
+    if (!rv) {
+        pid_t sb = pid_for_name("SpringBoard"); //get SpringBoard's pid
+        
+        entitlePid(sb, "get-task-allow", true, "com.apple.private.skip-library-validation", true); //add required entitlements to load unsigned library
+        empower(sb); //set csflags
+        extern int platformizeProcAtAddr(uint64_t addr); //WHY ISN'T THIS ON QiLin.h???
+        platformizeProcAtAddr(proc_for_pid(sb)); //why isn't SpringBoard already platform?
+        
+        NSString *cyc = [NSString stringWithFormat:@"%@/dylibs/dummypass.dylib", [[NSBundle mainBundle] bundlePath]]; //any tweak NOT compiled with substrate works.
+    
+        rv2 = inject_dylib(sb, [cyc UTF8String]);
+    
+    }
+    
+    if (![[self getIPAddress] isEqualToString:@"Are you connected to internet?"])
+        [self log:(rv2) ? @"Failed to inject code to SpringBoard!" : @"Code injection success! (Check your passcode buttons for a surprise!)"];
     
     mach_port_t mapped_tfp0 = MACH_PORT_NULL;
     remap_tfp0_set_hsp4(&mapped_tfp0);
     [self log:[NSString stringWithFormat:@"enabled host_get_special_port_4_? %@", (mapped_tfp0 == MACH_PORT_NULL) ? @"FAIL" : @"SUCCESS"]];
     unlocknvram();
-    
     term_kexecute();
     
     dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
@@ -188,9 +248,8 @@ next:
             drop_payload(); //chmod 777 all binaries and spawn a shell
     });
     
-    
     //to connect use netcat:
-    //nc 192.168.XX.XX 4141
+    //nc YOUR_IP 4141
     //replace your IP in there
     
 }

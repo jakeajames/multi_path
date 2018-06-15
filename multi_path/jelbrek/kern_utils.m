@@ -11,6 +11,7 @@
 #include "offsetof.h"
 #include "../offsets.h"
 #include "kexecute.h"
+#include "osobject.h"
 
 #include "QiLin.h"
 
@@ -258,7 +259,7 @@ void make_port_fake_task_port(mach_port_t port, uint64_t task_kaddr) {
 
 uint64_t proc_for_pid(pid_t pid) {
     uint64_t proc = kread64(find_allproc()), pd;
-    while (proc) {
+    while (proc) { //iterate over all processes till we find the one we're looking for
         pd = kread32(proc + offsetof_p_pid);
         if (pd == pid) return proc;
         proc = kread64(proc);
@@ -270,7 +271,7 @@ uint64_t proc_for_name(char *nm) {
     uint64_t proc = kread64(find_allproc());
     char name[40] = {0};
     while (proc) {
-        kread(proc + 0x268, name, 20);
+        kread(proc + 0x268, name, 20); //read 20 bytes off the process's name and compare
         if (strstr(name, nm)) return proc;
         proc = kread64(proc);
     }
@@ -290,6 +291,7 @@ unsigned int pid_for_name(char *nm) {
 }
 
 uint64_t find_kernproc() {
+    //since each process points to the next one and QiLin needs a pointer to kernproc find what's before it by doing kread64 twice I guess?
     uint64_t proc = kread64(find_allproc()), pd;
     while (proc) {
         pd = kread32(kread64(proc) + offsetof_p_pid);
@@ -350,10 +352,29 @@ uint64_t getVnodeAtPath(const char *path) {
     uint64_t ksym_vnode_lookup = 0xfffffff0071d6c84;
     uint64_t ksym_vfs_context_current = 0xfffffff0071f500c;
     
-    uint64_t context = zm_fix_addr(kexecute(ksym_vfs_context_current + kslide, 1, 0, 0, 0, 0, 0, 0)); //grab the vfs_context thanks iBSparkes aka PsychoTea
+    uint64_t context = zm_fix_addr(kexecute(ksym_vfs_context_current + kslide, 1, 0, 0, 0, 0, 0, 0)); //grab the vfs_context; thanks iBSparkes aka PsychoTea
     uint64_t vnode = kalloc(sizeof(unsigned int *)); //allocate memory on the kernel and grab the address
     
-    kexecute(ksym_vnode_lookup + kslide, path, 0, vnode, context, 0, 0, 0); //execute vnode_lookup()
+    kexecute(ksym_vnode_lookup + kslide, (uint64_t)path, 0, vnode, context, 0, 0, 0); //execute vnode_lookup()
     
     return kread64(vnode); //grab what vnode_lookup wrote in our vnode pointer
+}
+
+void entitlePid(pid_t pid, const char *ent1, _Bool val1, const char *ent2, _Bool val2) {
+    uint64_t proc = proc_for_pid(pid);
+    uint64_t ucred = kread64(proc+0x100);
+    uint64_t entitlements = kread64(kread64(ucred+0x78)+0x8);
+    printf("[*] Setting Entitlements...\n");
+    
+    if (OSDictionary_GetItem(entitlements, ent1) == 0) {
+        printf("before: %s is 0x%llx\n", ent1, OSDictionary_GetItem(entitlements, ent1));
+        OSDictionary_SetItem(entitlements, ent1, (val1) ? find_OSBoolean_True() : find_OSBoolean_False());
+        printf("after: %s is 0x%llx\n", ent1, OSDictionary_GetItem(entitlements, ent1));
+    }
+    
+    if (OSDictionary_GetItem(entitlements, ent2) == 0) {
+        printf("before: %s is 0x%llx\n", ent2, OSDictionary_GetItem(entitlements, ent2));
+        OSDictionary_SetItem(entitlements, ent2, (val2) ? find_OSBoolean_True() : find_OSBoolean_False());
+        printf("after: %s is 0x%llx\n", ent2, OSDictionary_GetItem(entitlements, ent2));
+        }
 }

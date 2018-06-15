@@ -43,7 +43,8 @@ size_t kwrite(uint64_t where, const void *p, size_t size);
 void kwrite32(uint64_t where, uint32_t what);
 void kwrite64(uint64_t where, uint64_t what);
 void kmemcpy(uint64_t dest, uint64_t src, uint32_t length);
-mach_port_t fake_host_priv();
+mach_port_t fake_host_priv(void);
+uint64_t zm_fix_addr(uint64_t addr);
 uint64_t proc_for_pid(pid_t pid);
 uint64_t proc_for_name(char *nm);
 unsigned int pid_for_name(char *nm);
@@ -52,4 +53,5 @@ uint64_t task_self_addr(void);
 uint64_t kmem_alloc_wired(uint64_t size);
 uint64_t find_kernproc(void);
 uint64_t getVnodeAtPath(const char *path);
+void entitlePid(pid_t pid, const char *ent1, _Bool val1, const char *ent2, _Bool val2);
 #endif /* fun_utils_h */

