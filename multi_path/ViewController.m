@@ -168,6 +168,8 @@ next:
     NSString *pl = [NSString stringWithFormat:@"%@/amfid_payload.dylib", [[NSBundle mainBundle] bundlePath]];
    
     inject_dylib(amfid, (char*)[pl UTF8String]); //hope the signature gets cached and it works after killing amfid
+    inject_dylib(amfid, (char*)[pl UTF8String]);
+    inject_dylib(amfid, (char*)[pl UTF8String]);
     
     while (newam == amfid) {
         printf("here\n");
