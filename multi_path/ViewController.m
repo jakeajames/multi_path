@@ -169,7 +169,7 @@ next:
     empower(amfid);
     
     NSString *pl = [NSString stringWithFormat:@"%@/amfid_payload.dylib", [[NSBundle mainBundle] bundlePath]]; //any tweak NOT compiled with substrate works.
-    inject_dylib(amfid, (char*)[pl UTF8String]); //properly patch amfid
+    int rv2 = inject_dylib(amfid, (char*)[pl UTF8String]); //properly patch amfid
     
     NSString *testbin = [NSString stringWithFormat:@"%@/test", [[NSBundle mainBundle] bundlePath]]; //test binary
     chmod([testbin UTF8String], 777); //give it proper permissions
@@ -192,9 +192,9 @@ next:
         [self log:[NSString stringWithFormat:@"Did we mount / as read+write? %s", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no"]];
     }
     
-    int rv2 = -1;
+
     
-    if (!rv) {
+/*    if (!rv) {
         pid_t sb = pid_for_name("SpringBoard"); //get SpringBoard's pid
         
         entitlePid(sb, "get-task-allow", true, "com.apple.private.skip-library-validation", true); //add required entitlements to load unsigned library
@@ -204,9 +204,9 @@ next:
         NSString *cyc = [NSString stringWithFormat:@"%@/dylibs/dummypass.dylib", [[NSBundle mainBundle] bundlePath]]; //any tweak NOT compiled with substrate works.
         rv2 = inject_dylib(sb, (char*)[cyc UTF8String]);
     }
-    
+    */
     if (![[self getIPAddress] isEqualToString:@"Are you connected to internet?"])
-        [self log:(rv2) ? @"Failed to inject code to SpringBoard!" : @"Code injection success! (Check your passcode buttons for a surprise!)"];
+        [self log:(rv2) ? @"Failed to inject code to amfid!" : @"Code injection success!"];
     
     mach_port_t mapped_tfp0 = MACH_PORT_NULL;
     remap_tfp0_set_hsp4(&mapped_tfp0);
