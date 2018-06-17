@@ -120,7 +120,7 @@ int read_fds[10000] = {0};
 int next_read_fd = 0;
 
 #define PIPE_SIZE 0x7ff
-
+int write_fds[10000] = {0}; 
 int alloc_and_fill_pipe() {
   int fds[2] = {0};
   int err = pipe(fds);
@@ -146,7 +146,7 @@ int alloc_and_fill_pipe() {
     printf("amount written was short: 0x%ld\n", amount_written);
   }
   read_fds[next_read_fd++] = read_end;
-  //printf("filled pipe %d\n", read_end);
+  write_fds[next_read_fd] = write_end;
   return read_end; // the buffer is actually hanging off the read end struct pipe
 }
 
@@ -961,7 +961,10 @@ mach_port_t run() {
   wk64(pipe + 0x00, 0);
   wk64(pipe + 0x08, 0);
   wk64(pipe + 0x10, 0);
-  
+  for (int i = 0; i < next_read_fd; i++) {
+        close(write_fds[i]);
+        close(read_fds[i]);
+  }
   // that should have cleared everything up!
   printf("done!\n");
     return new_tfp0;
