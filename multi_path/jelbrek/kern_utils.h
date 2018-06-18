@@ -52,6 +52,6 @@ uint64_t find_port_address(mach_port_name_t port);
 uint64_t task_self_addr(void);
 uint64_t kmem_alloc_wired(uint64_t size);
 uint64_t find_kernproc(void);
+uint64_t find_kernel_base(void);
 uint64_t getVnodeAtPath(const char *path);
-void entitlePid(pid_t pid, const char *ent1, _Bool val1, const char *ent2, _Bool val2);
 #endif /* fun_utils_h */

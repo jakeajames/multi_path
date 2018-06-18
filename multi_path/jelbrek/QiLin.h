@@ -66,7 +66,7 @@ int castrateAmfid (void);
 #define ALGORITHM_SHA1      1
 char *cdHashOfFile(char *fileName,int Algorithm); // Calculate CDHash of a given Mach-O (for messing with AMFI)
 
-
+int platformizeProcAtAddr(uint64_t addr);
 
 // Kernel Memory access (wrappers over kernel_task send right)
 uint64_t findKernelSymbol (char *Symbol);

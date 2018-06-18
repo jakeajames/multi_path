@@ -11,7 +11,6 @@
 #include "offsetof.h"
 #include "../offsets.h"
 #include "kexecute.h"
-#include "osobject.h"
 
 #include "QiLin.h"
 
@@ -335,6 +334,63 @@ uint64_t zm_fix_addr(uint64_t addr) {
     return zm_tmp < zm_hdr.start ? zm_tmp + 0x100000000 : zm_tmp;
 }
 
+int cp(const char *from, const char *to) {
+    int fd_to, fd_from;
+    char buf[4096];
+    ssize_t nread;
+    int saved_errno;
+    
+    fd_from = open(from, O_RDONLY);
+    if (fd_from < 0)
+        return -1;
+    
+    fd_to = open(to, O_WRONLY | O_CREAT | O_EXCL, 0666);
+    if (fd_to < 0)
+        goto out_error;
+    
+    while (nread = read(fd_from, buf, sizeof buf), nread > 0)
+    {
+        char *out_ptr = buf;
+        ssize_t nwritten;
+        
+        do {
+            nwritten = write(fd_to, out_ptr, nread);
+            
+            if (nwritten >= 0)
+            {
+                nread -= nwritten;
+                out_ptr += nwritten;
+            }
+            else if (errno != EINTR)
+            {
+                goto out_error;
+            }
+        } while (nread > 0);
+    }
+    
+    if (nread == 0)
+    {
+        if (close(fd_to) < 0)
+        {
+            fd_to = -1;
+            goto out_error;
+        }
+        close(fd_from);
+        
+        /* Success! */
+        return 0;
+    }
+    
+out_error:
+    saved_errno = errno;
+    
+    close(fd_from);
+    if (fd_to >= 0)
+        close(fd_to);
+    
+    errno = saved_errno;
+    return -1;
+}
 
 uint64_t getVnodeAtPath(const char *path) {
     extern uint64_t kslide;
@@ -360,21 +416,4 @@ uint64_t getVnodeAtPath(const char *path) {
     return kread64(vnode); //grab what vnode_lookup wrote in our vnode pointer
 }
 
-void entitlePid(pid_t pid, const char *ent1, _Bool val1, const char *ent2, _Bool val2) {
-    uint64_t proc = proc_for_pid(pid);
-    uint64_t ucred = kread64(proc+0x100);
-    uint64_t entitlements = kread64(kread64(ucred+0x78)+0x8);
-    printf("[*] Setting Entitlements...\n");
-    
-    if (OSDictionary_GetItem(entitlements, ent1) == 0) {
-        printf("before: %s is 0x%llx\n", ent1, OSDictionary_GetItem(entitlements, ent1));
-        OSDictionary_SetItem(entitlements, ent1, (val1) ? find_OSBoolean_True() : find_OSBoolean_False());
-        printf("after: %s is 0x%llx\n", ent1, OSDictionary_GetItem(entitlements, ent1));
-    }
-    
-    if (OSDictionary_GetItem(entitlements, ent2) == 0) {
-        printf("before: %s is 0x%llx\n", ent2, OSDictionary_GetItem(entitlements, ent2));
-        OSDictionary_SetItem(entitlements, ent2, (val2) ? find_OSBoolean_True() : find_OSBoolean_False());
-        printf("after: %s is 0x%llx\n", ent2, OSDictionary_GetItem(entitlements, ent2));
-        }
-}
+

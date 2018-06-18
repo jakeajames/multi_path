@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
-    <device id="retina3_5" orientation="portrait">
+    <device id="retina4_0" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -14,22 +15,35 @@
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="ViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="480"/>
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="r1n-NB-Mcq">
-                                <rect key="frame" x="44" y="239" width="232" height="221"/>
+                                <rect key="frame" x="16" y="322" width="287" height="226"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" editable="NO" textAlignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="PIN-bZ-bcX">
+                                <rect key="frame" x="16" y="20" width="287" height="237"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <string key="text">
+
+Exploit by Ian Beer
+
+Post exploitation is mostly from Electra, QiLin and a few things from my own
+
+Put together by @Jakeashacks :)</string>
+                                <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
+                            </textView>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="d5x-Dt-hZz">
-                                <rect key="frame" x="102" y="193" width="117" height="38"/>
+                                <rect key="frame" x="87" y="265" width="145" height="38"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="38" id="P4f-Ha-ICf"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="35"/>
-                                <state key="normal" title="jelbrek?"/>
+                                <state key="normal" title="Jailbreak!"/>
                                 <connections>
                                     <action selector="go:" destination="BYZ-38-t0r" eventType="touchUpInside" id="gtb-4g-8VY"/>
                                 </connections>
@@ -38,9 +52,13 @@
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="d5x-Dt-hZz" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="2RS-l9-4C6"/>
-                            <constraint firstItem="d5x-Dt-hZz" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="173" id="K80-P3-3JZ"/>
-                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="44" id="Mj2-0D-yf8"/>
-                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="top" secondItem="d5x-Dt-hZz" secondAttribute="bottom" constant="8" symbolic="YES" id="a9E-vS-Zi2"/>
+                            <constraint firstItem="PIN-bZ-bcX" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="9YO-ez-gAW"/>
+                            <constraint firstItem="PIN-bZ-bcX" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leadingMargin" id="BUh-75-cVn"/>
+                            <constraint firstItem="d5x-Dt-hZz" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="245" id="K80-P3-3JZ"/>
+                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="16" id="Mj2-0D-yf8"/>
+                            <constraint firstItem="d5x-Dt-hZz" firstAttribute="top" secondItem="PIN-bZ-bcX" secondAttribute="bottom" constant="8" id="XVa-RT-8pc"/>
+                            <constraint firstItem="r1n-NB-Mcq" firstAttribute="top" secondItem="d5x-Dt-hZz" secondAttribute="bottom" constant="19" id="a9E-vS-Zi2"/>
+                            <constraint firstItem="PIN-bZ-bcX" firstAttribute="centerX" secondItem="d5x-Dt-hZz" secondAttribute="centerX" id="cQh-LN-AGF"/>
                             <constraint firstAttribute="bottom" secondItem="r1n-NB-Mcq" secondAttribute="bottom" constant="20" symbolic="YES" id="i38-cy-q7q"/>
                             <constraint firstItem="d5x-Dt-hZz" firstAttribute="centerX" secondItem="r1n-NB-Mcq" secondAttribute="centerX" id="vuF-IH-0jb"/>
                         </constraints>
@@ -52,7 +70,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="114.375" y="116.25"/>
+            <point key="canvasLocation" x="114.375" y="116.19718309859155"/>
         </scene>
     </scenes>
 </document>
