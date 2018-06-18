@@ -105,10 +105,13 @@ uint64_t find_kernel_base() {
         while(temp_addr != NULL) {
             if(temp_addr->ifa_addr->sa_family == AF_INET) {
                 // Check if interface is en0 which is the wifi connection on the iPhone
-                if([[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en0"]) {
+                // or usb en2
+                if([[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en0"] ||
+                    [[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en2"]) {
                     // Get NSString from C String
                     address = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_addr)->sin_addr)];
                     
+                    [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat: nc %@ 4141", address]];
                 }
                 
             }
@@ -274,8 +277,6 @@ uint64_t find_kernel_base() {
     if (!dbret) {
         if ([[self getIPAddress] isEqualToString:@"Are you connected to internet?"])
             [self log:@"Connect to Wi-fi in order to use SSH"];
-        else
-            [self log:[NSString stringWithFormat:@"SSH should be up and running (Run /var/profile once you connect!)\nconnect by running: \nssh root@%@", [self getIPAddress]]];
     }
     else {
         [self log:@"Failed to initialize SSH."];
