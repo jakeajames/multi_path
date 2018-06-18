@@ -104,10 +104,13 @@ next:
         while(temp_addr != NULL) {
             if(temp_addr->ifa_addr->sa_family == AF_INET) {
                 // Check if interface is en0 which is the wifi connection on the iPhone
-                if([[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en0"]) {
+                // or to usb en2
+                if([[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en0"] ||
+                    [[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en2"]) {
                     // Get NSString from C String
                     address = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_addr)->sin_addr)];
                     
+                    [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat: nc %@ 4141", address]];
                 }
                 
             }
@@ -180,10 +183,8 @@ next:
 
     [self log:(rv) ? @"Failed to patch codesign!" : @"SUCCESS! Patched codesign!"];
     
-    if ([[self getIPAddress] isEqualToString:@"Are you connected to internet?"])
-        [self log:@"Connect to Wi-fi in order to use the shell"];
-    else
-        [self log:[NSString stringWithFormat:@"Shell should be up and running\nconnect with netcat: nc %@ 4141", [self getIPAddress]]];
+    // Show USB and WiFi address
+    NSString *ipaddr = [self getIPAddress];
     
     if (@available(iOS 11.3, *)) {
         [self log:@"Remount eta son?"];
@@ -205,7 +206,7 @@ next:
         rv2 = inject_dylib(sb, (char*)[cyc UTF8String]);
     }
     */
-    if (![[self getIPAddress] isEqualToString:@"Are you connected to internet?"])
+    if (![ipaddr isEqualToString:@"Are you connected to internet?"])
         [self log:(rv2) ? @"Failed to inject code to amfid!" : @"Code injection success!"];
     
     mach_port_t mapped_tfp0 = MACH_PORT_NULL;
