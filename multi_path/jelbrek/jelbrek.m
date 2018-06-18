@@ -7,17 +7,21 @@
 #include "jelbrek.h"
 #include <sys/mount.h>
 #include "kexecute.h"
+#include "osobject.h"
+#include <sys/spawn.h>
 
 //#include "inject_criticald.h"
 //#include "unlocknvram.h"
 //#include <IOKit/IOKitLib.h>
 
+extern uint64_t kslide;
 
 void init_jelbrek(mach_port_t tfp0, uint64_t kernel_base) {
     init_kernel_utils(tfp0);
     init_kernel(kernel_base, NULL);
     initQiLin(tfp0, kernel_base); //Jonathan Levin: http://newosxbook.com/QiLin/
     init_kexecute();
+    setKernelSymbol("_kernproc", find_kernproc()-kslide);
 }
 
 kern_return_t trust_bin(const char *path) {
@@ -63,7 +67,7 @@ BOOL unsandbox(pid_t pid) {
     return (kread64(kread64(ucred + 0x78) + 8 + 8) == 0) ? YES : NO;
 }
 
-void empower(pid_t pid) {
+void setcsflags(pid_t pid) {
     uint64_t proc = proc_for_pid(pid);
     uint32_t csflags = kread32(proc + offsetof_p_csflags);
     csflags = (csflags | CS_PLATFORM_BINARY | CS_INSTALLER | CS_GET_TASK_ALLOW | CS_DEBUGGED) & ~(CS_RESTRICT | CS_HARD | CS_KILL);
@@ -89,6 +93,88 @@ BOOL get_root(pid_t pid) {
     return (geteuid() == 0) ? YES : NO;
 }
 
+void platformize(pid_t pid) {
+    uint64_t proc = proc_for_pid(pid);
+    printf("Platformizing process at address 0x%llx\n", proc);
+    uint64_t task = kread64(proc + offsetof_task);
+    uint32_t t_flags = kread32(task + offsetof_t_flags);
+    t_flags |= 0x400;
+    NSLog(@"Flicking on task @0x%llx t->flags to have TF_PLATFORM (0x%x)..\n", task, t_flags);
+    kwrite32(task+offsetof_t_flags, t_flags);
+    uint32_t csflags = kread32(proc + offsetof_p_csflags);
+    kwrite32(proc + offsetof_p_csflags, csflags | 0x24004001u);
+}
+
+void entitlePid(pid_t pid, const char *ent1, _Bool val1) {
+    uint64_t proc = proc_for_pid(pid);
+    uint64_t ucred = kread64(proc+0x100);
+    uint64_t entitlements = kread64(kread64(ucred+0x78)+0x8);
+    
+    if (OSDictionary_GetItem(entitlements, ent1) == 0) {
+        printf("[*] Setting Entitlements...\n");
+        printf("before: %s is 0x%llx\n", ent1, OSDictionary_GetItem(entitlements, ent1));
+        OSDictionary_SetItem(entitlements, ent1, (val1) ? find_OSBoolean_True() : find_OSBoolean_False());
+        printf("after: %s is 0x%llx\n", ent1, OSDictionary_GetItem(entitlements, ent1));
+    }
+}
+
+uint64_t borrowCredsFromPid(pid_t donor) {
+    uint64_t selfproc = proc_for_pid(getpid());
+    uint64_t donorproc = proc_for_pid(donor);
+    uint64_t selfcred = kread64(selfproc + offsetof_p_ucred);
+    uint64_t donorcred = kread64(donorproc + offsetof_p_ucred);
+    kwrite64(selfproc + offsetof_p_ucred, donorcred);
+    return selfcred;
+}
+
+void undoCredDonation(uint64_t selfcred) {
+    uint64_t selfproc = proc_for_pid(getpid());
+    kwrite64(selfproc + offsetof_p_ucred, selfcred);
+}
+
+//don't use this yet pls
+uint64_t borrowCredsFromDonor(char *binary) {
+    pid_t pd;
+    const char* args[] = {binary, NULL};
+    posix_spawnattr_t attr;
+    posix_spawnattr_init(&attr);
+    posix_spawnattr_setflags(&attr, POSIX_SPAWN_START_SUSPENDED);
+    int rv = posix_spawn(&pd, binary, NULL, NULL, (char **)&args, NULL);
+    if (rv) {
+        printf("Error occured while gaining credentials from donor\n");
+        return -1;
+    }
+    kill(pd, SIGSTOP);
+    uint64_t creds = borrowCredsFromPid(pd);
+    kill(pd, SIGSEGV);
+    return creds;
+}
+
+int launchAsPlatform(char *binary, char *arg1, char *arg2, char *arg3, char *arg4, char *arg5, char *arg6, char**env) {
+    pid_t pd;
+    const char* args[] = {binary, arg1, arg2, arg3, arg4, arg5, arg6,  NULL};
+    
+    posix_spawnattr_t attr;
+    posix_spawnattr_init(&attr);
+    posix_spawnattr_setflags(&attr, POSIX_SPAWN_START_SUSPENDED); //this flag will make the created process stay frozen until we send the CONT signal. This so we can platformize it before it launches.
+    
+    int rv = posix_spawn(&pd, binary, NULL, &attr, (char **)&args, env);
+    
+    platformize(pd);
+    
+    kill(pd, SIGCONT); //continue
+    
+    return rv;
+}
+
+int launch(char *binary, char *arg1, char *arg2, char *arg3, char *arg4, char *arg5, char *arg6, char**env) {
+    pid_t pd;
+    const char* args[] = {binary, arg1, arg2, arg3, arg4, arg5, arg6,  NULL};
+    
+    int rv = posix_spawn(&pd, binary, NULL, NULL, (char **)&args, env);
+    sleep(1);
+    return rv;
+}
 
 void remount1126(){
     uint64_t _rootvnode = find_rootvnode();
@@ -98,8 +184,8 @@ void remount1126(){
     uint32_t v_flag = kread32(v_mount + offsetof_mnt_flag);
     printf("[*] Removing RDONLY, NOSUID and ROOTFS flags\n");
     printf("[*] Flags before 0x%x\n", v_flag);
-    v_flag = v_flag & ~MNT_NOSUID;
-    v_flag = v_flag & ~MNT_RDONLY;
+    v_flag &= ~MNT_NOSUID;
+    v_flag &= ~MNT_RDONLY;
     printf("[*] Flags now 0x%x\n", v_flag);
     kwrite32(v_mount + offsetof_mnt_flag, v_flag & ~MNT_ROOTFS);
     
@@ -126,18 +212,13 @@ void createDirAtPath(const char* path) {
 
 void mountDevAtPathAsRW(const char* devpath, const char* path) {
     
-    uint64_t selfucred = kread64(proc_for_pid(getpid()) + offsetof_p_ucred); //our credentials
-    uint64_t kernucred = kread64(proc_for_pid(0) + offsetof_p_ucred); //kernel's credentials
+    uint64_t selfcred = borrowCredsFromPid(0); //temporarily give us kernel credentials
     
-    kwrite64(proc_for_pid(getpid()) + offsetof_p_ucred, kernucred); //temporarily give us kernel credentials
-    
-    //uint32_t flags = kread32(kread64(getVnodeAtPath("/dev/disk0s1s2") + offsetof_v_mount) + offsetof_mnt_flag);
-    
-    int rv = mount("apfs", path, 0, &devpath); //FIXME
-    
+    uint32_t flags = kread32(kread64(getVnodeAtPath("/dev/disk0s1s2") + offsetof_v_mount) + offsetof_mnt_flag);
+    int rv = mount("apfs", path, flags, &devpath); //FIXME
     printf("[*] Mounting %s at %s, return value = %d\n", devpath, path, rv);
     
-    kwrite64(proc_for_pid(getpid()) + offsetof_p_ucred, selfucred); //give us our original credentials back
+    undoCredDonation(selfcred); //give us our original credentials back
 }
 
 //running this as is will probably make the screen black and reboot a few seconds later, at least that happened to me on 11.1.2
