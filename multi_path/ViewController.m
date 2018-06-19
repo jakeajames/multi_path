@@ -230,7 +230,7 @@ uint64_t find_kernel_base() {
         
         mkdir("/var/dropbear", 0777);
         unlink("/var/profile");
-        cp([profile UTF8String], "/var/profile");
+        cp([profile UTF8String], "/var/motd");
         chmod("/var/profile", 0777);
         
         
