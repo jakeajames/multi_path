@@ -230,8 +230,9 @@ uint64_t find_kernel_base() {
         
         mkdir("/var/dropbear", 0777);
         unlink("/var/profile");
+        unlink("/var/motd");
         cp([profile UTF8String], "/var/motd");
-        chmod("/var/profile", 0777);
+        chmod("/var/motd", 0777);
         
         
         //NSString *environment = [NSString stringWithFormat:@"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games:%@/usr/local/sbin:%@/usr/local/bin:%@/usr/sbin:%@/usr/bin:%@/sbin:%@/bin", iosbinpack, iosbinpack, iosbinpack, iosbinpack, iosbinpack, iosbinpack];
