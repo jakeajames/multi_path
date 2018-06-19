@@ -2,7 +2,7 @@
 
 iOS 11.0-11.3.1 jailbreak. Gets root, escapes sandbox, patches codesign (userland only), bind shell, nvram unlock (from Electra), host_get_special_port 4 (from Electra), code injection (from Electra; injects its amfid patch after using QiLin's since it's way better), SSH (dropbear)
 
-I think at this point this can be called a jailbreak, a developer-only one but with a small little feature: everything is done inside the app's bundle (except /var/dropbear & /var/profile) and nothing outside is touched. This makes it safe to use, without the requirement of full root read and write (although it is enabled on 11.0-11.2.6) and at the same time makes it not conflict with other jailbreaks in any way.
+I think at this point this can be called a jailbreak, a developer-only one but with a small little feature: everything is done inside the app's bundle (except /var/dropbear & /var/motd) and nothing outside is touched. This makes it safe to use, without the requirement of full root read and write (although it is enabled on 11.0-11.2.6) and at the same time makes it not conflict with other jailbreaks in any way.
 
 
 Includes TWO root shells :)
