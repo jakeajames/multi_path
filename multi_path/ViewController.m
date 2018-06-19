@@ -234,11 +234,7 @@ uint64_t find_kernel_base() {
         cp([profile UTF8String], "/var/motd");
         chmod("/var/motd", 0777);
         
-        
-        //NSString *environment = [NSString stringWithFormat:@"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games:%@/usr/local/sbin:%@/usr/local/bin:%@/usr/sbin:%@/usr/bin:%@/sbin:%@/bin", iosbinpack, iosbinpack, iosbinpack, iosbinpack, iosbinpack, iosbinpack];
-        //const char* env[] = {"PS1='\\h:\\w \\u\\$'", (const char*)[environment UTF8String],  NULL}; doesn't work
-        
-        dbret = launchAsPlatform((char*)[dropbear UTF8String], "-R", "--shell", (char*)[bash UTF8String], "-E", "-p", "22", NULL); //since I can't get environment to work properly you have to run /var/profile manually to setup the environment variables
+        dbret = launchAsPlatform((char*)[dropbear UTF8String], "-R", "--shell", (char*)[bash UTF8String], "-E", "-p", "22", NULL); 
         
         //-------------launch daeamons-------------//
         //--you can drop any daemon plist in iosbinpack64/LaunchDaemons and it will be loaded automatically. "REPLACE_BIN" will automatically get replaced by the absolute path of iosbinpack64--//
