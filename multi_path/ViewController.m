@@ -231,8 +231,8 @@ uint64_t find_kernel_base() {
         mkdir("/var/dropbear", 0777);
         unlink("/var/profile");
         unlink("/var/motd");
-        cp([profile UTF8String], "/var/motd");
-        chmod("/var/motd", 0777);
+        cp([profile UTF8String], "/var/profile");
+        chmod("/var/profile", 0777);
         
         dbret = launchAsPlatform((char*)[dropbear UTF8String], "-R", "--shell", (char*)[bash UTF8String], "-E", "-p", "22", NULL); 
         
