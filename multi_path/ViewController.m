@@ -224,6 +224,7 @@ uint64_t find_kernel_base() {
         NSString *dropbear = [NSString stringWithFormat:@"%@/iosbinpack64/usr/local/bin/dropbear", [[NSBundle mainBundle] bundlePath]];
         NSString *bash = [NSString stringWithFormat:@"%@/iosbinpack64/bin/bash", [[NSBundle mainBundle] bundlePath]];
         NSString *profile = [NSString stringWithFormat:@"%@/iosbinpack64/etc/profile", [[NSBundle mainBundle] bundlePath]];
+        NSString *motd = [NSString stringWithFormat:@"%@/iosbinpack64/etc/motd", [[NSBundle mainBundle] bundlePath]];
         NSString *profiledata = [NSString stringWithContentsOfFile:profile encoding:NSASCIIStringEncoding error:nil];
         [[profiledata stringByReplacingOccurrencesOfString:@"REPLACE_ME" withString:iosbinpack] writeToFile:profile atomically:YES encoding:NSASCIIStringEncoding error:nil];
         
@@ -232,7 +233,9 @@ uint64_t find_kernel_base() {
         unlink("/var/profile");
         unlink("/var/motd");
         cp([profile UTF8String], "/var/profile");
+        cp([motd UTF8String], "/var/motd");
         chmod("/var/profile", 0777);
+        chmod("/var/motd", 0777); //this can be read-only but just in case
         
         dbret = launchAsPlatform((char*)[dropbear UTF8String], "-R", "--shell", (char*)[bash UTF8String], "-E", "-p", "22", NULL); 
         
@@ -272,7 +275,7 @@ uint64_t find_kernel_base() {
         if ([[self getIPAddress] isEqualToString:@"Are you connected to internet?"])
             [self log:@"Connect to Wi-fi in order to use SSH"];
         else
-            [self log:[NSString stringWithFormat:@"SSH should be up and running (Run /var/profile once you connect!)\nconnect by running: \nssh root@%@", [self getIPAddress]]];
+            [self log:[NSString stringWithFormat:@"SSH should be up and running\nconnect by running: \nssh root@%@", [self getIPAddress]]];
     }
     else {
         [self log:@"Failed to initialize SSH."];
