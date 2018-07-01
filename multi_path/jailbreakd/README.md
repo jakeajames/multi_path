@@ -6,6 +6,7 @@ A small jailbreakd offering some more functionality to the jailbreak. Uses CPDis
 
 - Grab AppSupport headers and add them into your include path (https://github.com/theos/headers/tree/05405174749d912f7726121fcb5f27de73af0f08/AppSupport)
 - Include "AppSupport/CPDistributedMessagingCenter.h" on your main.m file
+- Link with https://github.com/jakeajames/rootme-tutorial/blob/master/AppSupport.tbd
 - The general syntax follows as this:
 ```
 CPDistributedMessagingCenter *messageCenter = [CPDistributedMessagingCenter centerNamed:@"com.jakeashacks.rootme"];
