@@ -159,7 +159,7 @@ uint64_t find_kernel_base() {
    /* entitlePid(getpid(), "get-task-allow", true);
     entitlePid(getpid(), "com.apple.system-task-ports", true);
     entitlePid(getpid(), "task_for_pid-allow", true);
-    entitlePid(getpid(), "com.apple.private.memorystatus", true);*/
+    entitlePid(getpid(), "com.apple.private.memorystatus", true);*/ //doesn't work?
     
     NSString *tester = [NSString stringWithFormat:@"%@/iosbinpack64/test", @(bundle_path())]; //test binary
     chmod([tester UTF8String], 777); //give it proper permissions
@@ -183,6 +183,7 @@ uint64_t find_kernel_base() {
     //binary to test codesign patch
     NSString *testbin = [NSString stringWithFormat:@"%@/test", @(bundle_path())]; //test binary
     chmod([testbin UTF8String], 777); //give it proper permissions
+    undoCredDonation(selfcred);
     
     //-------------codesign test-------------//
     
@@ -234,7 +235,6 @@ uint64_t find_kernel_base() {
         mkdir("/var/dropbear", 0777);
         unlink("/var/profile");
         unlink("/var/motd");
-        unlink("/var/run/jailbreakd.pid");
         cp([profile UTF8String], "/var/profile");
         cp([motd UTF8String], "/var/motd");
         chmod("/var/profile", 0777);
