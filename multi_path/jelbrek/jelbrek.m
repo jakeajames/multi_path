@@ -224,14 +224,15 @@ void remount1131(){
     uint64_t devVnode = getVnodeAtPath(devPath);
     printf("\n[*] vnode of /dev/disk0s1s1: 0x%llx\n", devVnode);
     
-    printf("[*] Clearing specflags \n");
-    printf("[*] Specflags before 0x%llx\n", kread64(kread64(devVnode + offsetof_v_specinfo) + offsetof_specflags));
-    kwrite64(kread64(devVnode + offsetof_v_specinfo) + offsetof_specflags, 0); // clear dev vnode’s v_specflags
-    printf("[*] Specflags now 0x%llx\n", kread64(kread64(devVnode + offsetof_v_specinfo) + offsetof_specflags));
     
     char *newMPPath = strdup("/private/var/mobile/tmp");
     createDirAtPath(newMPPath);
     mountDevAtPathAsRW(devPath, newMPPath);
+    
+    printf("[*] Clearing specflags \n");
+    printf("[*] Specflags before 0x%llx\n", kread64(kread64(devVnode + offsetof_v_specinfo) + offsetof_specflags));
+    kwrite64(kread64(devVnode + offsetof_v_specinfo) + offsetof_specflags, 0); // clear dev vnode’s v_specflags
+    printf("[*] Specflags now 0x%llx\n", kread64(kread64(devVnode + offsetof_v_specinfo) + offsetof_specflags));
     
     uint64_t newMPVnode = getVnodeAtPath(newMPPath);
     printf("[*] Vnode of /private/var/mobile/tmp 0x%llx\n", newMPVnode);

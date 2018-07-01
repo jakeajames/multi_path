@@ -9,10 +9,10 @@
 #include "kern_utils.h"
 #include "patchfinder64.h"
 #include "offsetof.h"
-#include "../offsets.h"
+#include "offsets.h"
 #include "kexecute.h"
+#include "osobject.h"
 
-#include "QiLin.h"
 
 /****** Kernel utility stuff ******/
 
@@ -333,91 +333,13 @@ uint64_t zm_fix_addr(uint64_t addr) {
     
     return zm_tmp < zm_hdr.start ? zm_tmp + 0x100000000 : zm_tmp;
 }
+#define MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT 6
+int memorystatus_control(uint32_t command, int32_t pid, uint32_t flags, void *buffer, size_t buffersize);
 
-int cp(const char *from, const char *to) {
-    int fd_to, fd_from;
-    char buf[4096];
-    ssize_t nread;
-    int saved_errno;
-    
-    fd_from = open(from, O_RDONLY);
-    if (fd_from < 0)
-        return -1;
-    
-    fd_to = open(to, O_WRONLY | O_CREAT | O_EXCL, 0666);
-    if (fd_to < 0)
-        goto out_error;
-    
-    while (nread = read(fd_from, buf, sizeof buf), nread > 0)
-    {
-        char *out_ptr = buf;
-        ssize_t nwritten;
-        
-        do {
-            nwritten = write(fd_to, out_ptr, nread);
-            
-            if (nwritten >= 0)
-            {
-                nread -= nwritten;
-                out_ptr += nwritten;
-            }
-            else if (errno != EINTR)
-            {
-                goto out_error;
-            }
-        } while (nread > 0);
-    }
-    
-    if (nread == 0)
-    {
-        if (close(fd_to) < 0)
-        {
-            fd_to = -1;
-            goto out_error;
-        }
-        close(fd_from);
-        
-        /* Success! */
-        return 0;
-    }
-    
-out_error:
-    saved_errno = errno;
-    
-    close(fd_from);
-    if (fd_to >= 0)
-        close(fd_to);
-    
-    errno = saved_errno;
-    return -1;
+int remove_memory_limit(void) {
+    // daemons run under launchd have a very stingy memory limit by default, we need
+    // quite a bit more for patchfinder so disable it here
+    // (note that we need the com.apple.private.memorystatus entitlement to do so)
+    pid_t my_pid = getpid();
+    return memorystatus_control(MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT, my_pid, 0, NULL, 0);
 }
-
-uint64_t getVnodeAtPath(const char *path) {
-    extern uint64_t kslide;
-    
-    /*grab those using a decrypted kernelcache and nm/jtool. I am not able to make a patchfinder yet cus I'm still an amateur
-     
-     Run:
-     
-     nm /path/to/kernelcache | grep _vnode_lookup
-     nm /path/to/kernelcache | grep vfs_context_current
-     
-     */
-    
-    //iPad Air 2 iOS 11.1.2
-    //uint64_t ksym_vnode_lookup = 0xfffffff0071d6c84;
-    //uint64_t ksym_vfs_context_current = 0xfffffff0071f500c;
-
-    //iPad Air 2 iOS 11.3.1
-    uint64_t ksym_vnode_lookup = 0xfffffff0071dffac;
-    uint64_t ksym_vfs_context_current = 0xfffffff0071fe32c;
-    
-    uint64_t context = zm_fix_addr(kexecute(ksym_vfs_context_current + kslide, 1, 0, 0, 0, 0, 0, 0)); //grab the vfs_context; thanks iBSparkes aka PsychoTea
-    uint64_t vnode = kalloc(sizeof(unsigned int *)); //allocate memory on the kernel and grab the address
-    
-    kexecute(ksym_vnode_lookup + kslide, (uint64_t)path, 0, vnode, context, 0, 0, 0); //execute vnode_lookup()
-    
-    return kread64(vnode); //grab what vnode_lookup wrote in our vnode pointer
-}
-
-

@@ -83,7 +83,6 @@ uint64_t find_kernel_base() {
     }
 }
 
-
 @interface ViewController ()
 
 @end
@@ -154,11 +153,15 @@ uint64_t find_kernel_base() {
 
     //-------------amfid-------------//
     
-    //uint64_t selfcred = borrowCredsFromDonor("/usr/bin/sysdiagnose"); //eta son! once I get this working I won't rely on QiLin anymore cus it's closed source
     
     uint64_t selfcred = borrowEntitlementsFromDonor("/usr/bin/sysdiagnose", NULL); //allow us to get amfid's task
     
-    NSString *tester = [NSString stringWithFormat:@"%@/iosbinpack64/test", [[NSBundle mainBundle] bundlePath]]; //test binary
+   /* entitlePid(getpid(), "get-task-allow", true);
+    entitlePid(getpid(), "com.apple.system-task-ports", true);
+    entitlePid(getpid(), "task_for_pid-allow", true);
+    entitlePid(getpid(), "com.apple.private.memorystatus", true);*/
+    
+    NSString *tester = [NSString stringWithFormat:@"%@/iosbinpack64/test", @(bundle_path())]; //test binary
     chmod([tester UTF8String], 777); //give it proper permissions
     
     if (launch((char*)[tester UTF8String], NULL, NULL, NULL, NULL, NULL, NULL, NULL)) castrateAmfid(); //patch amfid
@@ -172,16 +175,14 @@ uint64_t find_kernel_base() {
     
     //amfid payload
     sleep(2);
-    NSString *pl = [NSString stringWithFormat:@"%@/amfid_payload.dylib", [[NSBundle mainBundle] bundlePath]];
+    NSString *pl = [NSString stringWithFormat:@"%@/amfid_payload.dylib", @(bundle_path())];
     inject_dylib(amfid, (char*)[pl UTF8String]);
     int rv2 = inject_dylib(amfid, (char*)[pl UTF8String]); //properly patch amfid
     sleep(1);
     
     //binary to test codesign patch
-    NSString *testbin = [NSString stringWithFormat:@"%@/test", [[NSBundle mainBundle] bundlePath]]; //test binary
+    NSString *testbin = [NSString stringWithFormat:@"%@/test", @(bundle_path())]; //test binary
     chmod([testbin UTF8String], 777); //give it proper permissions
-    
-    undoCredDonation(selfcred);
     
     //-------------codesign test-------------//
     
@@ -212,7 +213,7 @@ uint64_t find_kernel_base() {
     
     //-------------dropbear-------------//
     
-    NSString *iosbinpack = [[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/iosbinpack64/"];
+    NSString *iosbinpack = [@(bundle_path()) stringByAppendingString:@"/iosbinpack64/"];
     
     int dbret = -1;
     
@@ -221,10 +222,11 @@ uint64_t find_kernel_base() {
         
         sleep(3);
         
-        NSString *dropbear = [NSString stringWithFormat:@"%@/iosbinpack64/usr/local/bin/dropbear", [[NSBundle mainBundle] bundlePath]];
-        NSString *bash = [NSString stringWithFormat:@"%@/iosbinpack64/bin/bash", [[NSBundle mainBundle] bundlePath]];
-        NSString *profile = [NSString stringWithFormat:@"%@/iosbinpack64/etc/profile", [[NSBundle mainBundle] bundlePath]];
-        NSString *motd = [NSString stringWithFormat:@"%@/iosbinpack64/etc/motd", [[NSBundle mainBundle] bundlePath]];
+        NSString *dropbear = [NSString stringWithFormat:@"%@/iosbinpack64/usr/local/bin/dropbear", @(bundle_path())];
+        NSString *bash = [NSString stringWithFormat:@"%@/iosbinpack64/bin/bash", @(bundle_path())];
+        NSString *killall = [NSString stringWithFormat:@"%@/iosbinpack64/usr/bin/killall", @(bundle_path())];
+        NSString *profile = [NSString stringWithFormat:@"%@/iosbinpack64/etc/profile", @(bundle_path())];
+        NSString *motd = [NSString stringWithFormat:@"%@/iosbinpack64/etc/motd", @(bundle_path())];
         NSString *profiledata = [NSString stringWithContentsOfFile:profile encoding:NSASCIIStringEncoding error:nil];
         [[profiledata stringByReplacingOccurrencesOfString:@"REPLACE_ME" withString:iosbinpack] writeToFile:profile atomically:YES encoding:NSASCIIStringEncoding error:nil];
         
@@ -232,35 +234,50 @@ uint64_t find_kernel_base() {
         mkdir("/var/dropbear", 0777);
         unlink("/var/profile");
         unlink("/var/motd");
+        unlink("/var/run/jailbreakd.pid");
         cp([profile UTF8String], "/var/profile");
         cp([motd UTF8String], "/var/motd");
         chmod("/var/profile", 0777);
         chmod("/var/motd", 0777); //this can be read-only but just in case
         
+        launch((char*)[killall UTF8String], "-SEGV", "dropbear", NULL, NULL, NULL, NULL, NULL);
         dbret = launchAsPlatform((char*)[dropbear UTF8String], "-R", "--shell", (char*)[bash UTF8String], "-E", "-p", "22", NULL); 
         
         //-------------launch daeamons-------------//
         //--you can drop any daemon plist in iosbinpack64/LaunchDaemons and it will be loaded automatically. "REPLACE_BIN" will automatically get replaced by the absolute path of iosbinpack64--//
         
         NSFileManager *fileManager = [NSFileManager defaultManager];
-        NSString *launchdaemons = [NSString stringWithFormat:@"%@/iosbinpack64/LaunchDaemons", [[NSBundle mainBundle] bundlePath]];
-        NSString *launchctl = [NSString stringWithFormat:@"%@/iosbinpack64/bin/launchctl", [[NSBundle mainBundle] bundlePath]];
+        NSString *launchdaemons = [NSString stringWithFormat:@"%@/iosbinpack64/LaunchDaemons", @(bundle_path())];
+        NSString *launchctl = [NSString stringWithFormat:@"%@/iosbinpack64/bin/launchctl", @(bundle_path())];
         NSArray *plists = [fileManager contentsOfDirectoryAtPath:launchdaemons error:nil];
         
         NSString *fileData;
         
         for (__strong NSString *file in plists) {
             
-            file = [[[[NSBundle mainBundle] bundlePath] stringByAppendingString:@"/iosbinpack64/LaunchDaemons/"] stringByAppendingString:file];
+            file = [[@(bundle_path()) stringByAppendingString:@"/iosbinpack64/LaunchDaemons/"] stringByAppendingString:file];
             fileData = [NSString stringWithContentsOfFile:file encoding:NSASCIIStringEncoding error:nil];
             
             printf("[*] Patching plist %s\n", [file UTF8String]);
             
             [[fileData stringByReplacingOccurrencesOfString:@"REPLACE_ME" withString:iosbinpack] writeToFile:file atomically:YES encoding:NSASCIIStringEncoding error:nil];
+    
+            if (strstr([file UTF8String], "jailbreakd") != 0) {
+                printf("[*] Found jailbreakd plist, special handling\n");
+                NSMutableDictionary *job = [NSPropertyListSerialization propertyListWithData:[NSData dataWithContentsOfFile:file] options:NSPropertyListMutableContainers format:nil error:nil];
+                
+                job[@"EnvironmentVariables"][@"KernelBase"] = [NSString stringWithFormat:@"0x%16llx", kernel_base];
+                [job writeToFile:file atomically:YES];
+                
+            }
             
             chmod([file UTF8String], 0644);
             chown([file UTF8String], 0, 0);
         }
+        
+        unlink("/var/log/testbin.log");
+        unlink("/var/log/jailbreakd-stderr.log");
+        unlink("/var/log/jailbreakd-stdout.log");
         
         launchAsPlatform((char*)[launchctl UTF8String], "unload", (char*)[launchdaemons UTF8String], NULL, NULL, NULL, NULL, NULL);
         launchAsPlatform((char*)[launchctl UTF8String], "load", (char*)[launchdaemons UTF8String], NULL, NULL, NULL, NULL, NULL);
@@ -268,7 +285,9 @@ uint64_t find_kernel_base() {
         sleep(1);
         
         [self log:([fileManager fileExistsAtPath:@"/var/log/testbin.log"]) ? @"Successfully loaded daemons!" : @"Failed to load launch daemons!"];
-        unlink("/var/log/testbin.log");
+        
+        //---------jailbreakd----------//
+        [self log:([fileManager fileExistsAtPath:@"/var/log/jailbreakd-stdout.log"]) ? @"Loaded jailbreakd!" : @"Failed to load jailbreakd!"];
     }
     
     if (!dbret) {
@@ -315,6 +334,7 @@ uint64_t find_kernel_base() {
     }
     else
         [self log:@"Exploit failed!"];
+    
 }
 
 - (void)viewDidLoad {

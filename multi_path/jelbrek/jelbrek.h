@@ -6,6 +6,7 @@ BOOL unsandbox(pid_t pid);
 void setcsflags(pid_t pid);
 BOOL get_root(pid_t pid);
 void remount1126(void);
+void mountDevAtPathAsRW(const char* devpath, const char* path);
 void remount1131(void);
 void platformize(pid_t pid);
 void entitlePid(pid_t pid, const char *ent1, _Bool val1);

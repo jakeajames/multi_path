@@ -3,5 +3,6 @@
 
 void drop_payload();
 char* prepare_payload();
+char* bundle_path();
 
 #endif
