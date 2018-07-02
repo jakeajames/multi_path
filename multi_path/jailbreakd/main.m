@@ -68,7 +68,7 @@ int pid;
         fprintf(stderr, "Error, entitlement value not a boolean\n");
         return 0;
     }
-    entitlePid(pid, ent, val);
+    entitlePid(pid, ent, valb);
     return 0;
 }
 - (NSDictionary *)setcsflags:(NSString *)name message:(NSDictionary *)userInfo {
