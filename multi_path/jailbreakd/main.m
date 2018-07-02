@@ -60,7 +60,7 @@ int pid;
     pid = atoi([[userInfo objectForKey:@"pid"] UTF8String]);
     printf("[*] Got request from pid %d\n", pid);
     char *ent = [[userInfo objectForKey:@"ent"] UTF8String];
-    NSString *val = [[userInfo objectForKey:@"value"] UTF8String];
+    NSString *val = [userInfo objectForKey:@"value"];
     BOOL valb;
     if ([val isEqualToString:@"true"]) valb = true;
     else if ([val isEqualToString:@"false"]) valb = false;
