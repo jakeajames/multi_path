@@ -92,7 +92,7 @@ uint64_t find_kernel_base() {
 //https://stackoverflow.com/questions/6807788/how-to-get-ip-address-of-iphone-programmatically
 - (NSString *)getIPAddress {
     
-    NSString *address = @"Are you connected to internet?";
+    NSString *address;
     struct ifaddrs *interfaces = NULL;
     struct ifaddrs *temp_addr = NULL;
     int success = 0;
@@ -104,17 +104,25 @@ uint64_t find_kernel_base() {
         while(temp_addr != NULL) {
             if(temp_addr->ifa_addr->sa_family == AF_INET) {
                 // Check if interface is en0 which is the wifi connection on the iPhone
-                if([[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en0"]) {
+                if([[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en0"] ||
+                   [[NSString stringWithUTF8String:temp_addr->ifa_name] isEqualToString:@"en2"]) {
                     // Get NSString from C String
-                    address = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_addr)->sin_addr)];
+                    NSString *addr = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_addr)->sin_addr)];
                     
+                    if([address length] == 0)
+                        address = addr;
+                    else
+                        address = [NSString stringWithFormat:@"{%@,%@}", address, addr];
                 }
-                
             }
             
             temp_addr = temp_addr->ifa_next;
         }
     }
+
+    if([address length] == 0)
+        address = @"Are you connected to internet?";
+
     // Free memory
     freeifaddrs(interfaces);
     return address;
