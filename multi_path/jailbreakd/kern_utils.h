@@ -53,7 +53,7 @@ uint64_t task_self_addr(void);
 uint64_t kmem_alloc_wired(uint64_t size);
 #endif /* fun_utils_h */
 
-#define DEBUG_LOG
+#define DEBUG_LOG //comment this line if you don't want to debug into /var/log
 #ifndef DEBUG_LOG
-#define printf(str, ...) printf("")
+#define NSLog(str, ...) fprintf(stdout, (char*)[str UTF8String], __VA_ARGS__) && NSLog(str, __VA_ARGS__)
 #endif

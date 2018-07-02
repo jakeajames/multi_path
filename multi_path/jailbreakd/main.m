@@ -39,26 +39,26 @@ int pid;
 
 - (NSDictionary *)rootme:(NSString *)name message:(NSDictionary *)userInfo {
     pid = atoi([[userInfo objectForKey:@"pid"] UTF8String]);
-    printf("[*] Got request from pid %d\n", pid);
+    NSLog(@"[*] Got request from pid %d\n", pid);
     get_root(pid);
     return 0;
 }
 
 - (NSDictionary *)unsandbox:(NSString *)name message:(NSDictionary *)userInfo {
     pid = atoi([[userInfo objectForKey:@"pid"] UTF8String]);
-    printf("[*] Got request from pid %d\n", pid);
+    NSLog(@"[*] Got request from pid %d\n", pid);
     unsandbox(pid);
     return 0;
 }
 - (NSDictionary *)platformize:(NSString *)name message:(NSDictionary *)userInfo {
     pid = atoi([[userInfo objectForKey:@"pid"] UTF8String]);
-    printf("[*] Got request from pid %d\n", pid);
+    NSLog(@"[*] Got request from pid %d\n", pid);
     platformize(pid);
     return 0;
 }
 - (NSDictionary *)entitle:(NSString *)name message:(NSDictionary *)userInfo {
     pid = atoi([[userInfo objectForKey:@"pid"] UTF8String]);
-    printf("[*] Got request from pid %d\n", pid);
+    NSLog(@"[*] Got request from pid %d\n", pid);
     char *ent = [[userInfo objectForKey:@"ent"] UTF8String];
     NSString *val = [userInfo objectForKey:@"value"];
     BOOL valb;
@@ -73,7 +73,7 @@ int pid;
 }
 - (NSDictionary *)setcsflags:(NSString *)name message:(NSDictionary *)userInfo {
     pid = atoi([[userInfo objectForKey:@"pid"] UTF8String]);
-    printf("[*] Got request from pid %d\n", pid);
+    NSLog(@"[*] Got request from pid %d\n", pid);
     setcsflags(pid);
     return 0;
 }
@@ -88,11 +88,11 @@ kern_return_t init_tfp0() {
         fprintf(stderr,"[*] ERROR: host_get_special_port 4: %s\n", mach_error_string(err));
         return -1;
     }
-    fprintf(stdout, "[*] Got tfp0!\n");
+    NSLog(@"[*] Got tfp0!\n");
     
     kernel_base = strtoull(getenv("KernelBase"), NULL, 16);
     kernel_slide = kernel_base - 0xFFFFFFF007004000;
-    fprintf(stdout,"[*] kaslr slide: 0x%016llx\n", kernel_slide);
+    NSLog(@"[*] kaslr slide: 0x%016llx\n", kernel_slide);
     
     init_jelbrek(tfp0, kernel_base);
     
@@ -105,13 +105,19 @@ int main(int argc, char **argv, char **envp) {
     offsets_init();
     init_tfp0();
     
-    //caches addresses, idea stolen from Electra but I used some more common sense and did it the obvious way
+    //cache addresses
     find_allproc();
-    find_zone_map_ref();
+    find_add_x0_x0_0x40_ret();
     find_OSBoolean_True();
     find_OSBoolean_False();
+    find_zone_map_ref();
     find_osunserializexml();
+    find_smalloc();
+    init_kexecute();
     
+    term_kernel();
+
+
     [[Listener alloc] init]; //allocate a new listener and start listening!
 	return 0;
 }

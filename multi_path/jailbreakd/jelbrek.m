@@ -11,7 +11,6 @@
 void init_jelbrek(mach_port_t tfp0, uint64_t kernel_base) {
     init_kernel_utils(tfp0);
     init_kernel(kernel_base, NULL);
-    init_kexecute();
 }
 
 BOOL unsandbox(pid_t pid) {
@@ -31,11 +30,11 @@ void setcsflags(pid_t pid) {
 
 void platformize(pid_t pid) {
     uint64_t proc = proc_for_pid(pid);
-    printf("Platformizing process at address 0x%llx\n", proc);
+    NSLog(@"Platformizing process at address 0x%llx\n", proc);
     uint64_t task = kread64(proc + offsetof_task);
     uint32_t t_flags = kread32(task + offsetof_t_flags);
     t_flags |= 0x400;
-    printf("Flicking on task @0x%llx t->flags to have TF_PLATFORM (0x%x)..\n", task, t_flags);
+    NSLog(@"Flicking on task @0x%llx t->flags to have TF_PLATFORM (0x%x)..\n", task, t_flags);
     kwrite32(task+offsetof_t_flags, t_flags);
     uint32_t csflags = kread32(proc + offsetof_p_csflags);
     kwrite32(proc + offsetof_p_csflags, csflags | 0x24004001u);
@@ -64,11 +63,16 @@ void entitlePid(pid_t pid, const char *ent1, _Bool val1) {
     uint64_t ucred = kread64(proc+0x100);
     uint64_t entitlements = kread64(kread64(ucred+0x78)+0x8);
     
-    if (OSDictionary_GetItem(entitlements, ent1) == 0) {
-        printf("[*] Setting Entitlements...\n");
-        printf("before: %s is 0x%llx\n", ent1, OSDictionary_GetItem(entitlements, ent1));
+    uint64_t current = OSDictionary_GetItem(entitlements, ent1);
+    
+    if (current == 0) {
+        usleep(1000);
+        NSLog(@"[*] Setting Entitlements...");
+        NSLog(@"before: %s is 0x%llx", ent1, current);
+        usleep(1000);
         OSDictionary_SetItem(entitlements, ent1, (val1) ? find_OSBoolean_True() : find_OSBoolean_False());
-        printf("after: %s is 0x%llx\n", ent1, OSDictionary_GetItem(entitlements, ent1));
+        usleep(1000);
+        NSLog(@"after: %s is 0x%llx", ent1, OSDictionary_GetItem(entitlements, ent1));
     }
 }
 

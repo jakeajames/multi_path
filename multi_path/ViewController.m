@@ -175,7 +175,7 @@ uint64_t find_kernel_base() {
     
     //amfid payload
     sleep(2);
-    NSString *pl = [NSString stringWithFormat:@"%@/amfid_payload.dylib", @(bundle_path())];
+    NSString *pl = [NSString stringWithFormat:@"%@/dylibs/amfid_payload.dylib", @(bundle_path())];
     inject_dylib(amfid, (char*)[pl UTF8String]);
     int rv2 = inject_dylib(amfid, (char*)[pl UTF8String]); //properly patch amfid
     sleep(1);
@@ -183,7 +183,7 @@ uint64_t find_kernel_base() {
     //binary to test codesign patch
     NSString *testbin = [NSString stringWithFormat:@"%@/test", @(bundle_path())]; //test binary
     chmod([testbin UTF8String], 777); //give it proper permissions
-    undoCredDonation(selfcred);
+    //undoCredDonation(selfcred);
     
     //-------------codesign test-------------//
     
@@ -248,7 +248,7 @@ uint64_t find_kernel_base() {
         
         NSFileManager *fileManager = [NSFileManager defaultManager];
         NSString *launchdaemons = [NSString stringWithFormat:@"%@/iosbinpack64/LaunchDaemons", @(bundle_path())];
-        NSString *launchctl = [NSString stringWithFormat:@"%@/iosbinpack64/bin/launchctl", @(bundle_path())];
+        NSString *launchctl = [NSString stringWithFormat:@"%@/iosbinpack64/bin/launchctl_", @(bundle_path())];
         NSArray *plists = [fileManager contentsOfDirectoryAtPath:launchdaemons error:nil];
         
         NSString *fileData;
@@ -299,8 +299,6 @@ uint64_t find_kernel_base() {
     else {
         [self log:@"Failed to initialize SSH."];
     }
-    
-    //trust_bin("/bin/launchctl"); //uncomment this if you want an always working (platformized) launchctl. trust_bin does NOT work on 11.3.x but probably does on 11.2.x.
     
     term_kexecute();
     term_kernel();
