@@ -119,7 +119,7 @@ mach_port_t fake_host_priv() {
 uint64_t kmem_alloc_wired(uint64_t size) {
     if (tfpzero == MACH_PORT_NULL) {
         printf("attempt to allocate kernel memory before any kernel memory write primitives available\n");
-        sleep(3);
+        sleep(1);
         return 0;
     }
     
@@ -132,7 +132,7 @@ uint64_t kmem_alloc_wired(uint64_t size) {
     err = mach_vm_allocate(tfpzero, &addr, ksize+0x4000, VM_FLAGS_ANYWHERE);
     if (err != KERN_SUCCESS) {
         printf("unable to allocate kernel memory via tfp0: %s %x\n", mach_error_string(err), err);
-        sleep(3);
+        sleep(1);
         return 0;
     }
     
@@ -146,7 +146,7 @@ uint64_t kmem_alloc_wired(uint64_t size) {
     err = mach_vm_wire(fake_host_priv(), tfpzero, addr, ksize, VM_PROT_READ|VM_PROT_WRITE);
     if (err != KERN_SUCCESS) {
         printf("unable to wire kernel memory via tfp0: %s %x\n", mach_error_string(err), err);
-        sleep(3);
+        sleep(1);
         return 0;
     }
     return addr;
@@ -392,8 +392,15 @@ out_error:
     return -1;
 }
 
-uint64_t getVnodeAtPath(const char *path) {
+
+
+
+//                                          deviceID is set in vc.m, we set it personally.
+
+uint64_t getVnodeAtPath(const char *path, int deviceID) {
     extern uint64_t kslide;
+    
+    
     
     /*grab those using a decrypted kernelcache and nm/jtool. I am not able to make a patchfinder yet cus I'm still an amateur
      
@@ -404,13 +411,90 @@ uint64_t getVnodeAtPath(const char *path) {
      
      */
     
-    //iPad Air 2 iOS 11.1.2
-    //uint64_t ksym_vnode_lookup = 0xfffffff0071d6c84;
-    //uint64_t ksym_vfs_context_current = 0xfffffff0071f500c;
 
-    //iPad Air 2 iOS 11.3.1
+
+    //set fooset default for iPad Air 2 iOS 11.3.1
     uint64_t ksym_vnode_lookup = 0xfffffff0071dffac;
     uint64_t ksym_vfs_context_current = 0xfffffff0071fe32c;
+    
+    printf("[Lakr] Got device id as:%d", deviceID);
+    //selecting offsets.
+    switch (deviceID) {
+        case 714:
+            printf("Seems to be iPad Pro (9.7-inch)\n");
+            if (@available (iOS 11.3, *)) {
+                //iPad Pro 9.7 WIFI iOS 11.3.1   -- iPad 6,3
+                ksym_vnode_lookup = 0xfffffff0071db710;
+                ksym_vfs_context_current = 0xfffffff0071f9a04;
+            }
+            break;
+        case 717:
+            printf("Seems to be iPad Pro (10.5-inch)\n");
+            if (@available (iOS 11.3, *)) {
+                //iPad Pro 10.5 (iPad7,3)
+                //11.3.1
+                ksym_vfs_context_current = 0xfffffff007243134;
+                ksym_vnode_lookup = 0xfffffff007224e40;
+            }
+            break;
+        case 718:
+            printf("Seems to be iPad 6\n");
+            if (@available (iOS 11.3, *)) {
+                //iPad 6 (iPad 2018)11.3.1
+                ksym_vnode_lookup = 0xfffffff007224de4;
+                ksym_vfs_context_current = 0xfffffff0072430d8;
+            }
+            break;
+        case 101:
+            printf("Seems to be iPhoneX\n");
+            if (@available (iOS 11.3, *)) {
+                //iPhone X Gobal iOS 11.3.1      -- iPhone10,3
+                ksym_vnode_lookup = 0xfffffff00722c0d0;
+                ksym_vfs_context_current = 0xfffffff00724ae40;
+            }
+            break;
+        case 71:
+            printf("Seems to be iPhone 7/ iPhone 7 Plus now\n");
+            if (0 == 1){    //iPhone 7/iPhone 7 Plus GSM and Global offsets iOS 11.3.1-11.2
+            }else if (@available (iOS 11.3, *)){
+                //11.3.1 & 11.3
+                ksym_vnode_lookup = 0xfffffff007224de4;
+                ksym_vfs_context_current = 0xfffffff0072430d8;
+            }
+            break;
+        case 62:
+            printf("Seems to be iPhone 6s/ iPhone 6s Plus now\n");
+            if (0 == 1){     //iPhone 6S/iPhone 6S Plus iOS 11.3.1-11.2
+            }else if (@available (iOS 11.3, *)){
+                //11.3.1 & 11.3
+                ksym_vnode_lookup = 0xfffffff0071db710;
+                ksym_vfs_context_current = 0xfffffff0071f9a04;
+            }
+            break;
+        case 81:
+            printf("Seems to be iPhone 8/ iPhone 8 Plus now\n");
+            if (0 == 1){     //iPhone 8/iPhone 8 Plus GSM and Global iOS 11.3.1-11.2
+            }else if (@available (iOS 11.3, *)){
+                //11.3.1 & 11.3
+                ksym_vnode_lookup = 0xfffffff00722c0d0;
+                ksym_vfs_context_current = 0xfffffff00724ae40;
+            }
+            break;
+        case 51:
+            printf("Seems to be iPhone 8/ iPhone 8 Plus now\n");
+            if (0 == 1){     //iPhone5s (Global) - 11.3.1  --iPhone 6,2
+            }else if (@available (iOS 11.3, *)){
+                //11.3.1 & 11.3
+                ksym_vnode_lookup = 0xfffffff0071d3d08;
+                ksym_vfs_context_current = 0xfffffff0071f2088;
+            }
+            break;
+            
+        default:
+            printf("Your device is not seted yet. use iPad Air 2 now for you.\n");
+            break;
+    }
+    
     
     uint64_t context = zm_fix_addr(kexecute(ksym_vfs_context_current + kslide, 1, 0, 0, 0, 0, 0, 0)); //grab the vfs_context; thanks iBSparkes aka PsychoTea
     uint64_t vnode = kalloc(sizeof(unsigned int *)); //allocate memory on the kernel and grab the address
