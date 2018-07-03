@@ -6,7 +6,7 @@ Latest update includes:
 - working launchctl (no need to platformize manually! The real launchctl binary is moved and on its place another binary uses jailbreakd to launch it platformized)
 - working "inject_criticald" binary (uses jailbreakd!)
 
-Some of the offsets are now added for mountting root file system. It should work but up to you.
+Some of the offsets are now added for mountting root file system. It should work but up to you.
 Report your offsets here:https://github.com/Co2333/kernelCache
 Notice: 11.3.1 seems to be the same as 11.3 Only report both when they are not the same.
 
