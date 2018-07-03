@@ -527,7 +527,7 @@ void prepare_for_rw_with_fake_tfp0(mach_port_t new_tfp0) {
 void wk32(uint64_t kaddr, uint32_t val) {
     if (tfp0 == MACH_PORT_NULL) {
         printf("attempt to write to kernel memory before any kernel memory write primitives available\n");
-        sleep(3);
+        sleep(1);
         return;
     }
     
@@ -561,13 +561,13 @@ uint32_t rk32(uint64_t kaddr) {
                                  &outsize);
     if (err != KERN_SUCCESS){
         printf("tfp0 read failed %s addr: 0x%llx err:%x port:%x\n", mach_error_string(err), kaddr, err, tfp0);
-        sleep(3);
+        sleep(1);
         return 0;
     }
     
     if (outsize != sizeof(uint32_t)){
         printf("tfp0 read was short (expected %lx, got %llx\n", sizeof(uint32_t), outsize);
-        sleep(3);
+        sleep(1);
         return 0;
     }
     return val;
@@ -853,7 +853,7 @@ mach_port_t run() {
     kern_return_t err = mach_vm_read(new_tfp0, kernel_vm_map, 0x40, &data_out, &out_size);
     if (err != KERN_SUCCESS) {
         printf("mach_vm_read failed: %x %s\n", err, mach_error_string(err));
-        sleep(3);
+        sleep(1);
         exit(EXIT_FAILURE);
     }
     

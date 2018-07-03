@@ -7,7 +7,7 @@ void setcsflags(pid_t pid);
 BOOL get_root(pid_t pid);
 void remount1126(void);
 void mountDevAtPathAsRW(const char* devpath, const char* path);
-void remount1131(void);
+void remount1131(int deviceID);
 void platformize(pid_t pid);
 void entitlePid(pid_t pid, const char *ent1, _Bool val1);
 int launch(char *binary, char *arg1, char *arg2, char *arg3, char *arg4, char *arg5, char *arg6, char**env);
