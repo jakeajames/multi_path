@@ -1,0 +1,3 @@
+export PATH='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/bin/X11:/usr/games:REPLACE_ME/usr/local/sbin:REPLACE_ME/usr/local/bin:REPLACE_ME/usr/sbin:REPLACE_ME/usr/bin:REPLACE_ME/sbin:REPLACE_ME/bin'
+export PS1='\h:\w \u\$ '
+REPLACE_ME/bin/bash
