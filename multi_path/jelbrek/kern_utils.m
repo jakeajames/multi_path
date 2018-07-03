@@ -481,7 +481,7 @@ uint64_t getVnodeAtPath(const char *path, int deviceID) {
             }
             break;
         case 51:
-            printf("Seems to be iPhone 8/ iPhone 8 Plus now\n");
+            printf("Seems to be iPhone 5s (Global) now\n");
             if (0 == 1){     //iPhone5s (Global) - 11.3.1  --iPhone 6,2
             }else if (@available (iOS 11.3, *)){
                 //11.3.1 & 11.3
