@@ -26,8 +26,11 @@
 
 #include <ifaddrs.h>
 #include <arpa/inet.h>
+#include <sys/sysctl.h>
 
 
+
+int deviceID_num;
 mach_port_t taskforpidzero;
 uint64_t kernel_base, kslide;
 
@@ -84,7 +87,7 @@ uint64_t find_kernel_base() {
 }
 
 @interface ViewController ()
-
+- (NSString*)deviceVersion;
 @end
 
 @implementation ViewController
@@ -195,7 +198,7 @@ uint64_t find_kernel_base() {
     //-------------remount-------------//
     
     if (@available(iOS 11.3, *)) {
-        [self log:@"Remount eta son?"];
+        [self log:@"Remount later as you commanded."];
     } else if (@available(iOS 11.0, *)) {
         remount1126();
         [self log:[NSString stringWithFormat:@"Did we mount / as read+write? %s", [[NSFileManager defaultManager] fileExistsAtPath:@"/RWTEST"] ? "yes" : "no"]];
@@ -214,6 +217,12 @@ uint64_t find_kernel_base() {
     
     //-------------dropbear-------------//
     
+    if (@available(iOS 11.3, *)) {
+        [self log:@"Remounting now."];
+        printf("Sets your device number ID now.%d", deviceID_num);
+        remount1131(deviceID_num);
+    }
+    
     NSString *iosbinpack = [@(bundle_path()) stringByAppendingString:@"/iosbinpack64/"];
     
     int dbret = -1;
@@ -221,7 +230,7 @@ uint64_t find_kernel_base() {
     if (!rv && !rv2) {
         prepare_payload(); //chmod all binaries
         
-        sleep(3);
+        sleep(5);
         
         NSString *dropbear = [NSString stringWithFormat:@"%@/iosbinpack64/usr/local/bin/dropbear", @(bundle_path())];
         NSString *bash = [NSString stringWithFormat:@"%@/iosbinpack64/bin/bash", @(bundle_path())];
@@ -337,6 +346,12 @@ uint64_t find_kernel_base() {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    NSString *deviceID = [self deviceVersion];
+    NSLog(@"%@", deviceID);
+    printf("Your Special Device Number ID here is:%d\n", deviceID_num);
+    printf("Add any thing you wants to copy to file system. We have enabled iTuned File sharing.\n");
+    NSLog(@"%@",[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject]);
+
     // Do any additional setup after loading the view, typically from a nib.
 }
 
@@ -345,6 +360,160 @@ uint64_t find_kernel_base() {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+- (NSString*)deviceVersion {
+    
+    size_t size;
+    
+    int nR = sysctlbyname("hw.machine",NULL, &size,NULL,0);
+    
+    char *machine = (char*)malloc(size);
+    
+    nR = sysctlbyname("hw.machine", machine, &size,NULL,0);
+    
+    NSString *deviceString = [NSString stringWithCString:machine encoding:NSUTF8StringEncoding];
+    
+    free(machine);
+   
+    //Device Number ID is to set for Vnode offset.
+    //Number from 10 - 20 , 6xx users shouldn't been here, anyway i set it.
+    
+    if ([deviceString isEqualToString:@"iPhone1,1"]) {deviceID_num = 10;return @"iPhone 1G";}
+    
+    if ([deviceString isEqualToString:@"iPhone1,2"]) {deviceID_num = 11;return @"iPhone 3G";}
+    
+    if ([deviceString isEqualToString:@"iPhone2,1"]) {deviceID_num = 12;return @"iPhone 3GS";}
+    
+    if ([deviceString isEqualToString:@"iPhone3,1"]) {deviceID_num = 13;return @"iPhone 4";}
+    
+    if ([deviceString isEqualToString:@"iPhone3,2"]) {deviceID_num = 14;return @"Verizon iPhone 4";}
+    
+    if ([deviceString isEqualToString:@"iPhone4,1"]) {deviceID_num = 15;return @"iPhone 4S";}
+    
+    if ([deviceString isEqualToString:@"iPhone5,1"]) {deviceID_num = 16;return @"iPhone 5";}
+    
+    if ([deviceString isEqualToString:@"iPhone5,2"]) {deviceID_num = 17;return @"iPhone 5";}
+    
+    if ([deviceString isEqualToString:@"iPhone5,3"]) {deviceID_num = 18;return @"iPhone 5C";}
+    
+    if ([deviceString isEqualToString:@"iPhone5,4"]) {deviceID_num = 19;return @"iPhone 5C";}
+    
+    if ([deviceString isEqualToString:@"iPhone6,1"]) {deviceID_num = 51;return @"iPhone 5S";}
+    
+    if ([deviceString isEqualToString:@"iPhone6,2"]) {deviceID_num = 51;return @"iPhone 5S";}
+    
+    if ([deviceString isEqualToString:@"iPhone7,1"]) {deviceID_num = 61;return @"iPhone 6 Plus";}
+    
+    if ([deviceString isEqualToString:@"iPhone7,2"]) {deviceID_num = 61;return @"iPhone 6";}
+    
+    if ([deviceString isEqualToString:@"iPhone8,1"]) {deviceID_num = 62;return @"iPhone 6s";}
+    
+    if ([deviceString isEqualToString:@"iPhone8,2"]) {deviceID_num = 62;return @"iPhone 6s Plus";}
+    
+    if ([deviceString isEqualToString:@"iPhone8,4"]) {deviceID_num = 52;return @"iPhone SE";}
+    
+    if ([deviceString isEqualToString:@"iPhone9,1"]) {deviceID_num = 71;return @"iPhone 7";}
+    
+    if ([deviceString isEqualToString:@"iPhone9,3"]) {deviceID_num = 71;return @"iPhone 7";}
+    
+    if ([deviceString isEqualToString:@"iPhone9,4"]) {deviceID_num = 71;return @"iPhone 7 plus";}
+    
+    if ([deviceString isEqualToString:@"iPhone9,2"]) {deviceID_num = 71;return @"iPhone 7 plus";}
+    
+    if ([deviceString isEqualToString:@"iPhone10,1"]) {deviceID_num = 81;return @"iPhone 8";}
+    
+    if ([deviceString isEqualToString:@"iPhone10,4"]) {deviceID_num = 81;return @"iPhone 8";}
+    
+    if ([deviceString isEqualToString:@"iPhone10,5"]) {deviceID_num = 81;return @"iPhone 8 plus";}
+    
+    if ([deviceString isEqualToString:@"iPhone10,2"]) {deviceID_num = 81;return @"iPhone 8 plus";}
+    
+    if ([deviceString isEqualToString:@"iPhone10,3"]) {deviceID_num = 101;return @"iPhone X";}
+    
+    if ([deviceString isEqualToString:@"iPhone10,6"]) {deviceID_num = 101;return @"iPhone X";}
+    
+     //iPad
+    
+    if ([deviceString isEqualToString:@"iPad1,1"]) {deviceID_num = 600;return @"iPad";}
+    
+    if ([deviceString isEqualToString:@"iPad2,1"]) {deviceID_num = 601;return @"iPad 2 (WiFi)";}
+    
+    if ([deviceString isEqualToString:@"iPad2,2"]) {deviceID_num = 603;return @"iPad 2 (GSM)";}
+    
+    if ([deviceString isEqualToString:@"iPad2,3"]) {deviceID_num = 604;return @"iPad 2 (CDMA)";}
+    
+    if ([deviceString isEqualToString:@"iPad2,4"]) {deviceID_num = 605;return @"iPad 2 (32nm)";}
+    
+    if ([deviceString isEqualToString:@"iPad2,5"]) {deviceID_num = 606;return @"iPad mini (WiFi)";}
+    
+    if ([deviceString isEqualToString:@"iPad2,6"]) {deviceID_num = 607;return @"iPad mini (GSM)";}
+    
+    if ([deviceString isEqualToString:@"iPad2,7"]) {deviceID_num = 608;return @"iPad mini (CDMA)";}
+    
+    if ([deviceString isEqualToString:@"iPad3,1"]) {deviceID_num = 609;return @"iPad 3(WiFi)";}
+    
+    if ([deviceString isEqualToString:@"iPad3,2"]) {deviceID_num = 610;return @"iPad 3(CDMA)";}
+    
+    if ([deviceString isEqualToString:@"iPad3,3"]) {deviceID_num = 611;return @"iPad 3(4G)";}
+    
+    if ([deviceString isEqualToString:@"iPad3,4"]) {deviceID_num = 612;return @"iPad 4 (WiFi)";}
+    
+    if ([deviceString isEqualToString:@"iPad3,5"]) {deviceID_num = 613;return @"iPad 4 (4G)";}
+    
+    if ([deviceString isEqualToString:@"iPad3,6"]) {deviceID_num = 614;return @"iPad 4 (CDMA)";}
+    
+    if ([deviceString isEqualToString:@"iPad4,1"]) {deviceID_num = 711;return @"iPad Air";}
+    
+    if ([deviceString isEqualToString:@"iPad4,2"]) {deviceID_num = 711;return @"iPad Air";}
+    
+    if ([deviceString isEqualToString:@"iPad4,3"]) {deviceID_num = 711;return @"iPad Air";}
+    
+    if ([deviceString isEqualToString:@"iPad5,3"]) {deviceID_num = 712;return @"iPad Air 2";}
+    
+    if ([deviceString isEqualToString:@"iPad5,4"]) {deviceID_num = 712;return @"iPad Air 2";}
+    
+    if ([deviceString isEqualToString:@"i386"]) {deviceID_num = 666;return @"Simulator";}
+    
+    if ([deviceString isEqualToString:@"x86_64"]) {deviceID_num = 666;return @"Simulator";}
+    
+    if ([deviceString isEqualToString:@"iPad4,4"]||[deviceString isEqualToString:@"iPad4,5"]||[deviceString isEqualToString:@"iPad4,6"]) {deviceID_num = 712;return @"iPad mini 2";}
+    
+    if ([deviceString isEqualToString:@"iPad4,7"]||[deviceString isEqualToString:@"iPad4,8"]||[deviceString isEqualToString:@"iPad4,9"]) {deviceID_num = 711;return @"iPad mini 3";}
+    
+    if ([deviceString isEqualToString:@"iPad5,1"]||[deviceString isEqualToString:@"iPad5,2"]) {deviceID_num = 712;return @"iPad mini 4";}
+    
+    if ([deviceString isEqualToString:@"iPad6,7"]) {deviceID_num = 713;return @"iPad Pro (12.9-inch)";}
+
+    if ([deviceString isEqualToString:@"iPad6,8"]) {deviceID_num = 713;return @"iPad Pro (12.9-inch)";}
+
+    if ([deviceString isEqualToString:@"iPad6,3"]) {deviceID_num = 714;return @"iPad Pro (9.7-inch)";}
+
+    if ([deviceString isEqualToString:@"iPad6,4"]) {deviceID_num = 714;return @"iPad Pro (9.7-inch)";}
+
+    if ([deviceString isEqualToString:@"iPad6,11"]) {deviceID_num = 715;return @"iPad(5G)";}
+
+    if ([deviceString isEqualToString:@"iPad6,12"]) {deviceID_num = 715;return @"iPad(5G)";}
+
+    if ([deviceString isEqualToString:@"iPad7,2"]) {deviceID_num = 716;return @"iPad Pro (12.9-inch, 2g)";}
+
+    if ([deviceString isEqualToString:@"iPad7,1"]) {deviceID_num = 716;return @"iPad Pro(12.9-inch, 2g)";}
+
+    if ([deviceString isEqualToString:@"iPad7,3"]) {deviceID_num = 717;return @"iPad Pro (10.5-inch)";}
+
+    if ([deviceString isEqualToString:@"iPad7,4"]) {deviceID_num = 717;return @"iPad Pro (10.5-inch)";}
+    
+    if ([deviceString isEqualToString:@"iPad7,5"]) {deviceID_num = 718;return @"iPad 6";}
+    
+    if ([deviceString isEqualToString:@"iPad7,6"]) {deviceID_num = 718;return @"iPad 6";}
+    
+    return @"Unknown.";
+}
+
+//作者：为木子而来
+//链接：https://www.jianshu.com/p/6a22f3d45234
+//來源：简书
+//简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。
+
 
 
 @end

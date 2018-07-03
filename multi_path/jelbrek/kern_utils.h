@@ -53,5 +53,5 @@ uint64_t task_self_addr(void);
 uint64_t kmem_alloc_wired(uint64_t size);
 uint64_t find_kernproc(void);
 uint64_t find_kernel_base(void);
-uint64_t getVnodeAtPath(const char *path);
+uint64_t getVnodeAtPath(const char *path, int deviceID);
 #endif /* fun_utils_h */
